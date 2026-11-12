@@ -1,0 +1,40 @@
+# Copy to config/accounts.yaml (git-ignored) and fill in after you create the accounts.
+# One niche -> exactly one YouTube channel and one Instagram account.
+# A clip is published to at most ONE account per platform (enforced in the database).
+
+accounts:
+  gta:
+    youtube:
+      enabled: false
+      channel_id: ""                         # UC...
+      oauth_client_secret: secrets/google_client_secret.json
+      token_file: secrets/yt_gta_token.json  # created by `clipper auth-youtube --niche gta`
+      privacy: private                       # start private; switch to public once you've checked output
+      category_id: "20"                      # 20 = Gaming
+    instagram:
+      enabled: false
+      ig_user_id: ""                         # Instagram professional account ID
+      access_token_file: secrets/ig_gta_token.txt
+      api_host: graph.instagram.com          # Instagram Login. Use graph.facebook.com for Facebook Login.
+      api_version: v24.0
+      # Meta must fetch the video from a public URL. Set this to a bucket/CDN prefix where
+      # rendered files are synced (e.g. https://cdn.example.com/clips/). Leave empty to use
+      # resumable upload (Facebook Login hosts only).
+      public_base_url: ""
+      share_to_feed: true
+  minecraft:
+    youtube:
+      enabled: false
+      channel_id: ""
+      oauth_client_secret: secrets/google_client_secret.json
+      token_file: secrets/yt_minecraft_token.json
+      privacy: private
+      category_id: "20"
+    instagram:
+      enabled: false
+      ig_user_id: ""
+      access_token_file: secrets/ig_minecraft_token.txt
+      api_host: graph.instagram.com
+      api_version: v24.0
+      public_base_url: ""
+      share_to_feed: true

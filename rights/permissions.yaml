@@ -1,0 +1,12 @@
+# Channels whose owners gave written permission to clip their videos.
+# The fetch step will only download a video if it is Creative Commons (CC BY) OR its
+# channel is listed here. Keep the permission email/screenshot in rights/evidence/.
+#
+# - channel_id: UCxxxxxxxxxxxxxxxxxxxxxx
+#   channel_title: Example Gamer
+#   niches: [gta]
+#   granted_on: 2026-11-12
+#   evidence: rights/evidence/example_gamer.pdf
+#   terms: "Clips OK with credit + link in caption; monetization allowed"
+
+permissions: []

@@ -1,0 +1,45 @@
+# Niche definitions: what to search for, how to cut, how to brand.
+# Edit freely. Each niche maps to one YouTube channel + one Instagram account (see accounts.yaml).
+
+defaults:
+  clip_min_s: 15
+  clip_max_s: 45
+  clips_per_source: 3          # never mine more than this from one source video
+  min_gap_between_clips_s: 60  # clips from the same source must be this far apart
+  layout: blur_stack           # blur_stack | full_crop
+  zoom: 1.35                   # foreground zoom for blur_stack (1.0 = full width)
+  hook_seconds: 2.5            # hook text shown at top for this long
+  daily_cap_per_account: 3
+  discovery:
+    max_results_per_query: 25
+    min_views: 5000
+    max_duration_s: 7200
+    min_duration_s: 120
+    published_within_days: 365
+    license: creativeCommon    # only CC-BY sources are auto-downloadable (see rights/README.md)
+
+niches:
+  gta:
+    display: GTA
+    queries:
+      - "GTA 6 gameplay"
+      - "GTA 5 funny moments"
+      - "GTA online gameplay no commentary"
+      - "GTA RP highlights"
+    title_style: "short, punchy, curiosity-driven; GTA slang ok; no clickbait lies"
+    hashtags: ["#gta", "#gta6", "#gaming", "#shorts"]
+    # YouTube ads: no graphic violence in the first 7 s (Sep 2026 rule). Rockstar: no leaked/pre-release footage, avoid spoilers.
+    exclude_title_terms: ["leak", "leaked", "spoiler", "ending", "beta build"]
+    violence_safe_hook: true
+    spoiler_card_until: "2026-12-10"   # add "spoiler-free" / warning card on GTA 6 clips until this date
+  minecraft:
+    display: Minecraft
+    queries:
+      - "minecraft funny moments"
+      - "minecraft hardcore highlights"
+      - "minecraft speedrun"
+      - "minecraft build timelapse"
+    title_style: "playful, clear, kid-friendly; no profanity"
+    hashtags: ["#minecraft", "#gaming", "#shorts"]
+    exclude_title_terms: ["hack", "cheat client", "free minecraft"]
+    violence_safe_hook: false

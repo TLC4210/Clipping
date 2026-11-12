@@ -1,0 +1,10 @@
+anthropic>=2.8
+google-api-python-client>=2.150
+google-auth-oauthlib>=1.2
+yt-dlp>=2026.10.26
+PyYAML>=6.0
+requests>=2.32
+numpy>=2.0
+# optional: local speech-to-text when a source has no captions
+# faster-whisper>=1.1
+pytest>=8.0
