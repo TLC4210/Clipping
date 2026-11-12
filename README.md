@@ -15,6 +15,7 @@ Research date: **2026-11-12**. Platform rules and campaign rates change often, s
 | [`docs/05-automation-stack.md`](docs/05-automation-stack.md) | Pipeline design, open-source building blocks, paid APIs, and the tools connected to this workspace |
 | [`docs/06-agent-limits-and-risks.md`](docs/06-agent-limits-and-risks.md) | What an agent can and can't do here, where a human must stay involved, and the ban risks |
 | [`docs/07-build-plan.md`](docs/07-build-plan.md) | A phased plan for building the automated clipper |
+| [`docs/08-niche-and-accounts-plan.md`](docs/08-niche-and-accounts-plan.md) | **Chosen niches** (GTA, Minecraft, FaZe streams, Shawn Ryan Show), the multi-account layout, rights for each niche, and priority order |
 | [`docs/sources.md`](docs/sources.md) | Every source used, with a reliability note |
 
 ## Summary

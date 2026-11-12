@@ -21,6 +21,7 @@
 
 ## Hard "don'ts" (bannable, and some are fraud)
 1. **Account farms, burner accounts, multiple CR accounts.** CR §13.3 allows one account per creator and detects linked devices. YouTube's spam and circumvention policies terminate coordinated channel networks.
+   - *Clarification:* **one** CR profile **may link several real social accounts, including several on the same platform** (CR FAQ). What's banned is multiple CR profiles, fake or burner identities, and posting the same content across accounts. See doc 08 for the allowed multi-account layout.
 2. **"Warming" fake accounts** with bot engagement. Some briefs casually say "warm up a new account". Do it only with genuine, human-owned accounts and real posting, never with automated engagement.
 3. **Bought or botted views, engagement pods, view farms.** Permanent ban (CR §12.1–12.2, §13.2). Clawback of balances (§13.4). Could be fraud against the brand.
 4. **Unofficial posting APIs or private-API libraries** for IG or YT. These break the ToS and get accounts locked.

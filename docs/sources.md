@@ -44,3 +44,17 @@ Accessed 2026-11-12. **Reliability:** A = official or primary, B = reputable pre
 - https://github.com/Anil-matcha/AI-Youtube-Shorts-Generator
 - https://github.com/NaufalRizqullah/opensource-clipping
 - https://github.com/GrepCut/OpenClipper
+
+## Added for niche plan (doc 08)
+- CR Help: link & verify social accounts (multiple same-platform accounts allowed): https://help.contentrewards.com/en/articles/13554405-how-to-link-and-verify-your-social-media-accounts (A)
+- CR FAQ: https://contentrewards.com/faqs (A)
+- Clipping Collective, data from 719 CR campaigns (2026-10-17): https://clippingcollective.com/guides/clipping-campaign-data-2026 (C)
+- GTA 6 release date 2026-11-19: https://www.techradar.com/gaming/grand-theft-auto-6-release-date-confirmed-but-its-been-delayed-heres-why , https://www.pcworld.com/article/3052217/gta-6s-release-date-confirmed-for-real-this-time-seriously.html (B)
+- Rockstar policy on posting copyrighted material: https://support.rockstargames.com/articles/200153756 (A, returned 503 during research) ; summary: https://gameinformer.com/b/news/archive/2013/09/16/rockstar-details-allowable-content-and-uses-of-game-footage.aspx (B)
+- YouTube gaming-violence ad rules, Sep 2026: https://www.dexerto.com/gta/youtube-updates-gaming-violence-monetization-rules-ahead-of-gta-6-launch-3405945/ (B)
+- Minecraft content creation guidelines: https://help-redesign.zendesk.com/hc/en-us/articles/34348618194189-Content-Creation-and-Broadcasting-Terms-of-Use-and-Guidelines (A, mirror) ; summary: https://conductatlas.com/platform/minecraft/minecraft-usage-guidelines/video-content-monetization-carve-out/ (C)
+- FaZe roster exits: https://techcrunch.com/2025/12/27/faze-clans-future-is-uncertain-after-influencers-depart , https://streamscharts.com/news/faze-clan-faces-major-shakeup , https://www.tubefilter.com/2026/05/01/new-faze-clan-creator-group-house-core/amp/ (B)
+- Kick clipping / streamer-paid clippers (N3on): https://win.gg/kick-clipping-program/ , https://findclout.com/blog/kick-clipping-program (B/C)
+- Shawn Ryan Show official channel: https://www.youtube.com/@ShawnRyanShow ; existing clip channels: https://www.youtube.com/@ShawnRyan-Shorts , https://www.youtube.com/channel/UCLzWfW2CtYwb4OXG7blRWmw
+- Instagram multi-account limits (about 5 per device): https://contentstudio.io/blog/how-many-instagram-accounts-can-i-have , https://blog.hootsuite.com/multiple-instagram-accounts/ (C)
+- Whop Bounties live query 2026-11-12: 50 open bounties, none match these niches
