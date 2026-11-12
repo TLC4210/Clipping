@@ -4,7 +4,7 @@ This repo collects research on running a short-form clipping operation for **You
 
 Research date: **2026-11-12**. Platform rules and campaign rates change often, so re-check anything marked *verify* before you rely on it.
 
-**The pipeline code is in [`PIPELINE.md`](PIPELINE.md)** (setup, daily commands, how it works), with the code in `clipper/`.
+**Setting it up on Windows: [`SETUP-WINDOWS.md`](SETUP-WINDOWS.md).** The pipeline code is in [`PIPELINE.md`](PIPELINE.md) (setup, daily commands, how it works), with the code in `clipper/`.
 
 ## Files
 
