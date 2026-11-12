@@ -59,8 +59,22 @@ When you're ready for full automation, `run --auto-approve --publish --live` doe
 15 10,18 * * *  cd ~/Clipping && .venv/bin/python -m clipper run --niche gta --limit 2 --auto-approve --publish --live
 ```
 
+## Creator allowlist (streamer campaigns)
+`rights/creators.yaml` lists creators who pay for or allow clips: Lacy, JasonTheWeen, CORE, FaZe Flank, Lysium (GTA RP), Fable SMP (Minecraft), Kai Cenat (watch), and IShowSpeed. The plain-English version is `docs/09-clip-allowlist.md`.
+
+- After you **join** a campaign on Content Rewards, set `joined: true` for it. From then on, `discover` pulls that creator's recent YouTube uploads and stream VODs (cheap `playlistItems` calls, not search).
+- Campaign rules flow through the pipeline:
+  - The AI picker is told who must be the focus.
+  - Required caption tags like `#Lacy` are added to captions, and QA checks they're there.
+  - Footage outside the campaign's date window is rejected.
+  - Campaigns marked `auto_publish: false` are rendered but held for you.
+- After each live post, the output includes `SUBMIT_NOW` with the campaign link. Content Rewards only counts clips submitted **within 30 minutes of posting**.
+- `python -m clipper creators` shows which entries the bot will use today and why not for the rest.
+- The third niche, `streams`, has no CC search. It only uses joined creator campaigns:
+  `python -m clipper run --niche streams --limit 2`
+
 ## Limits and safety rails built in
-- No source without CC BY, written permission, or your own file.
+- No source without a joined creator campaign, CC BY, written permission, or your own file. Creators on the `blocked:` list are never fetched.
 - ≤3 clips per source, spaced ≥60s apart. ≤3 posts/day/account (`config/niches.yaml`).
 - A clip can't go to two YouTube accounts or two Instagram accounts.
 - YouTube upload quota: 100 uploads/day per Google Cloud project. Instagram: 100 posts/24h per account.

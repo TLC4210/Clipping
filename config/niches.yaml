@@ -43,3 +43,17 @@ niches:
     hashtags: ["#minecraft", "#gaming", "#shorts"]
     exclude_title_terms: ["hack", "cheat client", "free minecraft"]
     violence_safe_hook: false
+  streams:
+    display: Stream clips
+    # No CC search for this niche: sources come only from rights/creators.yaml (campaigns you joined).
+    queries: []
+    title_style: "streamer-clip style: name the streamer, punchy, no fake claims, no drama bait"
+    hashtags: ["#stream", "#shorts"]
+    exclude_title_terms: []
+    violence_safe_hook: false
+    clip_min_s: 12
+    clip_max_s: 60
+    discovery:
+      min_views: 0
+      max_duration_s: 43200      # full streams can run many hours
+      published_within_days: 30

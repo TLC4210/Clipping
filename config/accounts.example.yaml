@@ -38,3 +38,19 @@ accounts:
       api_version: v24.0
       public_base_url: ""
       share_to_feed: true
+  streams:                                   # FaZe alumni / CORE / streamer campaigns (rights/creators.yaml)
+    youtube:
+      enabled: false
+      channel_id: ""
+      oauth_client_secret: secrets/google_client_secret.json
+      token_file: secrets/yt_streams_token.json
+      privacy: private
+      category_id: "20"
+    instagram:
+      enabled: false
+      ig_user_id: ""
+      access_token_file: secrets/ig_streams_token.txt
+      api_host: graph.instagram.com
+      api_version: v24.0
+      public_base_url: ""
+      share_to_feed: true

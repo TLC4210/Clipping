@@ -6,12 +6,35 @@ import traceback
 from pathlib import Path
 
 from . import db, fetch, highlights, qa, render
-from .config import load_accounts, niche as get_niche
+from .config import load_accounts, load_creators, niche as get_niche
 
 
 def _cfg(niche_name: str) -> dict:
     cfg = get_niche(niche_name)
     cfg["_name"] = niche_name
+    return cfg
+
+
+def creator_of(src: dict) -> tuple[str | None, dict]:
+    """The allowlisted creator (rights/creators.yaml) a source came from, if any."""
+    try:
+        key = (json.loads(src.get("meta") or "{}") or {}).get("creator")
+    except (TypeError, ValueError):
+        key = None
+    if not key:
+        return None, {}
+    return key, load_creators()[0].get(key, {})
+
+
+def cfg_for_source(niche_name: str, src: dict) -> dict:
+    """Niche config plus the creator campaign's rules (focus, caption, source offset)."""
+    cfg = _cfg(niche_name)
+    key, c = creator_of(src)
+    if c:
+        cfg["focus"] = c.get("focus")
+        cfg["caption_must_include"] = list(c.get("caption_must_include") or [])
+        cfg["min_start_s"] = float((c.get("source") or {}).get("start_offset_s") or 0)
+        cfg["creator_key"] = key
     return cfg
 
 
@@ -22,7 +45,10 @@ def describe(src: dict, pick: dict, cfg: dict) -> str:
         parts.append(f"Footage: {src.get('channel_title')} — licensed CC BY: {src.get('url')}")
     elif basis.startswith("permission"):
         parts.append(f"Footage: {src.get('channel_title')} (used with permission): {src.get('url')}")
-    parts.append(" ".join(cfg.get("hashtags", [])))
+    elif basis.startswith("campaign:"):
+        parts.append(f"Footage: {src.get('channel_title')} — {src.get('url')}")
+    must = [t for t in cfg.get("caption_must_include", []) if t.lower() not in " ".join(parts).lower()]
+    parts.append(" ".join(must + list(cfg.get("hashtags", []))))
     return "\n\n".join(p for p in parts if p)
 
 
@@ -41,12 +67,12 @@ def fetch_pending(conn, niche_name: str, limit: int = 3, yt=None) -> list[str]:
 
 
 def mine_and_render(conn, niche_name: str, limit: int = 3) -> list[int]:
-    cfg = _cfg(niche_name)
     made = []
     rows = conn.execute("SELECT * FROM sources WHERE niche=? AND status='fetched' LIMIT ?",
                         (niche_name, limit)).fetchall()
     for row in rows:
         src = dict(row)
+        cfg = cfg_for_source(niche_name, src)
         try:
             picks = highlights.find(src, cfg)
         except Exception as e:
@@ -103,6 +129,7 @@ def publish_approved(conn, niche_name: str, live: bool = False, limit: int | Non
     from . import publish_instagram, publish_youtube
 
     cfg = _cfg(niche_name)
+    creators = load_creators()[0]
     accts = load_accounts().get(niche_name, {})
     cap = cfg.get("daily_cap_per_account", 3)
     results = []
@@ -110,6 +137,17 @@ def publish_approved(conn, niche_name: str, live: bool = False, limit: int | Non
                          (niche_name,)).fetchall()
     for clip in clips[: limit or len(clips)]:
         tags = cfg.get("hashtags", [])
+        src = dict(conn.execute("SELECT * FROM sources WHERE id=?", (clip["source_id"],)).fetchone())
+        ckey, creator = creator_of(src)
+        if creator and not creator.get("auto_publish", False):
+            results.append({"clip": clip["id"], "status": f"held: {ckey} campaign needs manual steps "
+                            "(pre-approval / overlay / rules) — see rights/creators.yaml"})
+            continue
+        submit = None
+        if creator:
+            urls = (creator.get("campaign") or {}).get("urls") or []
+            submit = {"campaign": ckey, "submit_at": urls[0] if urls else None,
+                      "deadline": "within 30 minutes of posting"}
         for platform in ("youtube", "instagram"):
             acct = accts.get(platform) or {}
             if not acct.get("enabled"):
@@ -133,7 +171,8 @@ def publish_approved(conn, niche_name: str, live: bool = False, limit: int | Non
                              "VALUES (?,?,?,?,?,'published',?)",
                              (clip["id"], platform, niche_name, r["remote_id"], r["url"], db.now()))
                 conn.commit()
-                results.append({"clip": clip["id"], "platform": platform, "status": "published", "url": r["url"]})
+                results.append({"clip": clip["id"], "platform": platform, "status": "published", "url": r["url"],
+                                **({"SUBMIT_NOW": submit} if submit else {})})
             except Exception as e:
                 results.append({"clip": clip["id"], "platform": platform, "status": f"failed: {e}"})
         posted = conn.execute("SELECT COUNT(*) FROM posts WHERE clip_id=? AND status='published'",

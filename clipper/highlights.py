@@ -132,6 +132,7 @@ def _claude_pick(src: dict, cands: list[dict], words: list[dict], cfg: dict, n: 
             f"Niche: {cfg.get('display')}\nTitle style: {cfg.get('title_style')}\n"
             f"Source title: {src.get('title')}\nSource channel: {src.get('channel_title')}\n"
             f"Clip length: {cfg['clip_min_s']}-{cfg['clip_max_s']} s. Pick at most {n}."
+            + (f"\nCampaign requirement (reject candidates that fail it): {cfg['focus']}" if cfg.get("focus") else "")
         ),
     }]
     for i, c in enumerate(cands):
@@ -205,7 +206,8 @@ def find(src: dict, cfg: dict) -> list[dict]:
         media.transcribe_local(path) if os.environ.get("CLIPPER_WHISPER") else [])
     score = per_second_scores(info["duration"], media.audio_energy(path), media.scene_cuts(path), words)
     n = cfg["clips_per_source"]
-    cands = candidate_windows(score, {**cfg, "clip_max_s": cfg["clip_max_s"]}, k=max(4, n * 4))
+    cands = candidate_windows(score, cfg, k=max(4, n * 4))
+    cands = [c for c in cands if c["start"] >= cfg.get("min_start_s", 0)]
     if not cands:
         return []
     picks = _claude_pick(src, cands, words, cfg, n) or _heuristic_pick(src, cands, cfg, n)

@@ -83,6 +83,25 @@ def cmd_auth_youtube(a):
     print("Authorized:", publish_youtube.authorize(acct))
 
 
+def cmd_creators(a):
+    from datetime import date
+
+    from . import rights
+    from .config import load_creators
+
+    creators, blocked = load_creators()
+    rows = []
+    for key, c in creators.items():
+        ok, why = rights.creator_eligible(c, None)
+        rows.append({
+            "key": key, "niches": c.get("niches"), "status": c.get("status"), "joined": c.get("joined"),
+            "valid_until": str(c.get("valid_until")), "auto_publish": c.get("auto_publish"),
+            "bot_will_use": ok, "why_not": None if ok else why,
+            "campaign": (c.get("campaign") or {}).get("name"), "pay": (c.get("campaign") or {}).get("pay"),
+        })
+    _print({"today": date.today().isoformat(), "creators": rows, "blocked": [b["name"] for b in blocked]})
+
+
 def cmd_status(a):
     out = {}
     for t in ("sources", "clips", "posts"):
@@ -133,6 +152,7 @@ def main(argv=None):
     sp.add_argument("--live", action="store_true", help="actually upload (default is dry run)")
     add("auth-youtube", cmd_auth_youtube)
     add("status", cmd_status, niche=False)
+    add("creators", cmd_creators, niche=False)
 
     a = p.parse_args(argv)
     a.conn = db.connect()

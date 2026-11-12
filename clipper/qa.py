@@ -37,6 +37,13 @@ def check(clip: dict, src: dict, cfg: dict) -> tuple[bool, list[str]]:
         if src.get("url") and src["url"] not in (clip.get("description") or ""):
             problems.append("CC BY source link missing from description")
 
+    caption = f"{clip.get('title') or ''} {clip.get('description') or ''}".lower()
+    for token in cfg.get("caption_must_include", []):
+        if token.lower() not in caption:
+            problems.append(f"campaign caption requirement missing: {token}")
+    if (src.get("rights_basis") or "").startswith("campaign:") and src.get("url") and src["url"] not in (clip.get("description") or ""):
+        problems.append("source link missing from description")
+
     title = clip.get("title") or ""
     if not title or len(title) > 100:
         problems.append("title empty or > 100 chars")

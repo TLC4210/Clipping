@@ -178,3 +178,86 @@ def test_claude_picker_request_and_parsing(env, monkeypatch):
     # violent pick dropped for GTA (violence_safe_hook), the other kept and clamped
     assert len(out) == 1 and out[0]["title"] == "This GTA jump was insane"
     assert out[0]["start"] == 20.0 and out[0]["end"] == 41.0
+
+
+CREATORS = {
+    "lacy": {"name": "Lacy", "niches": ["streams"], "youtube": {"channel_id": "UClacy"}, "status": "active",
+             "joined": True, "valid_until": "2099-01-01", "source": {"any_date": True},
+             "focus": "Lacy main focus", "caption_must_include": ["Lacy", "#Lacy"], "auto_publish": True,
+             "campaign": {"urls": ["https://contentrewards.com/c/campaigns/x"]}},
+    "kai": {"name": "Kai", "niches": ["gta", "streams"], "youtube": {"channel_id": "UCkai"}, "status": "active",
+            "joined": True, "valid_until": "2099-01-01",
+            "source": {"published_after": "2026-10-21", "published_before": "2026-11-01"}},
+    "notjoined": {"name": "X", "niches": ["streams"], "youtube": {"channel_id": "UCx"}, "status": "active",
+                  "joined": False, "valid_until": "2099-01-01"},
+}
+BLOCKED = [{"name": "The Shawn Ryan Show", "reason": "no permission"}]
+
+
+def test_creator_allowlist_gate(env, monkeypatch):
+    from clipper import rights
+    from clipper.config import niche
+
+    monkeypatch.setattr(rights, "load_creators", lambda: (CREATORS, BLOCKED))
+    streams = {**niche("streams"), "_name": "streams"}
+    gta = {**niche("gta"), "_name": "gta"}
+
+    def vid(ch, pub="2026-11-01T00:00:00Z", title="stream", license="youtube", chtitle="Some"):
+        return {"snippet": {"title": title, "description": "", "channelId": ch, "channelTitle": chtitle,
+                            "publishedAt": pub, "liveBroadcastContent": "none"}, "status": {"license": license}}
+
+    assert rights.check(vid("UClacy"), streams) == (True, "campaign:lacy")
+    assert not rights.check(vid("UClacy"), gta)[0]                                   # wrong niche
+    assert not rights.check(vid("UCx"), streams)[0]                                  # not joined
+    assert rights.check(vid("UCkai", pub="2026-10-25T00:00:00Z"), gta)[0]            # inside window
+    assert not rights.check(vid("UCkai", pub="2026-11-05T00:00:00Z"), gta)[0]        # outside window
+    assert not rights.check(vid("UCrandom"), streams)[0]                             # unknown, not CC
+    assert not rights.check(vid("UCsrs", license="creativeCommon", chtitle="The Shawn Ryan Show"), gta)[0]
+
+
+def test_creator_discovery_and_caption_rules(env, monkeypatch):
+    from clipper import db, discover, pipeline, qa, rights
+    import clipper.pipeline as pl
+
+    monkeypatch.setattr(rights, "load_creators", lambda: (CREATORS, BLOCKED))
+    monkeypatch.setattr(discover, "load_creators", lambda: (CREATORS, BLOCKED))
+    monkeypatch.setattr(pl, "load_creators", lambda: (CREATORS, BLOCKED))
+
+    class Req:
+        def __init__(self, d): self.d = d
+        def execute(self): return self.d
+
+    class YT:
+        def channels(self):
+            class C:
+                def list(self, **kw):
+                    assert "UClacy" in kw["id"]
+                    return Req({"items": [{"contentDetails": {"relatedPlaylists": {"uploads": "UUlacy"}}}]})
+            return C()
+
+        def playlistItems(self):
+            class P:
+                def list(self, **kw):
+                    return Req({"items": [{"contentDetails": {"videoId": "lacyvod"}}]})
+            return P()
+
+        def videos(self):
+            class V:
+                def list(self, **kw):
+                    return Req({"items": [{"id": "lacyvod", "snippet": {
+                        "title": "lacy stream", "description": "", "channelId": "UClacy", "channelTitle": "Lacy",
+                        "publishedAt": "2026-11-10T00:00:00Z", "liveBroadcastContent": "none"},
+                        "status": {"license": "youtube"}, "contentDetails": {"duration": "PT4H10M"},
+                        "statistics": {"viewCount": "10"}}]})
+            return V()
+
+    conn = db.connect()
+    stats = discover.run("streams", conn, yt=YT())
+    assert stats["new_ok"] == 1
+    src = dict(conn.execute("SELECT * FROM sources").fetchone())
+    assert src["rights_basis"] == "campaign:lacy" and json.loads(src["meta"])["creator"] == "lacy"
+
+    cfg = pipeline.cfg_for_source("streams", src)
+    assert cfg["focus"] == "Lacy main focus"
+    desc = pipeline.describe(src, {"description": "He lost it."}, cfg)
+    assert "#Lacy" in desc and src["url"] in desc

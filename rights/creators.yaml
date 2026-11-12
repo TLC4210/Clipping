@@ -1,0 +1,248 @@
+# CLIP ALLOWLIST: creators whose footage the bot may clip, and under what rules.
+# Researched 2026-11-12. Campaigns change weekly, so re-verify before relying on an entry.
+#
+# How the bot uses this file:
+#   - It only fetches from a creator when `status: active` AND `joined: true` AND today is
+#     within `valid_until`. A campaign's permission covers only clippers who have JOINED it,
+#     so every entry starts at joined: false. Flip it after you join on Content Rewards.
+#   - It searches each creator's YouTube uploads (`youtube.channel_id`), limited by `source`.
+#   - `caption_must_include` is added to every post caption and checked in QA.
+#   - `focus` is passed to the AI picker ("X must be the main focus").
+#   - `auto_publish: false` means clips are made but never posted without you (pre-approval,
+#     logo overlays, Twitch-only sources, etc.).
+#   - Anything under `blocked:` is never fetched, even if it shows up as CC.
+#
+# basis values: campaign (paid program; joining = permission), public_statement, written_permission
+
+creators:
+
+  # ───────────────────────── STREAMS niche (FaZe alumni / CORE) ─────────────────────────
+  lacy:
+    name: Lacy
+    niches: [streams]
+    youtube: {channel_id: UCeoZXkaJDtdTHafgoZeDcAA, handle: "@LacyHimself"}   # Live tab = full streams
+    twitch: lacy
+    basis: campaign
+    status: active
+    joined: false
+    valid_until: 2026-11-22          # 30-day campaign launched ~Oct 20-23; confirm end date on listing
+    campaign:
+      name: "$30,000 Lacy 30 Day Campaign"
+      operator: Reach (Content Rewards)
+      pay: "Pool split by share of approved views: $25,000 (TikTok/Reels/Shorts) + $5,000 (X). 10% CR fee."
+      minimum: "1,000,000 approved views across your clips before you get any share"
+      urls:
+        - https://contentrewards.com/c/campaigns/4479e5e2-9a00-489e-8b0c-345834f37cc7
+        - https://contentrewards.com/c/campaigns/20b7c977-8d0c-4bd0-b9b0-2db9200f405b
+      rules_url: https://reachclipping.com/Lacy
+    source: {any_date: true}         # any Lacy video/stream from Twitch, YouTube, Snapchat, TikTok, IG, X
+    focus: "Lacy must be the primary focus of the clip (not just an intro cameo)"
+    caption_must_include: ["Lacy", "#Lacy"]
+    rules:
+      - "Lacy's name in caption or on-screen text; #Lacy in caption"
+      - "≥50% of account audience in US/CA/UK/AU/NZ"
+      - "No logos of any kind; no negative portrayal / hate farming"
+      - "No botting, reposts, or collab posts; no repetitive or mismatched thumbnails"
+      - "Submit each clip link within 30 minutes of posting"
+      - "AI-generated content: rules page CONFLICTS (allowed in one section, a strike offense in another). Don't use AI voice/visuals; ask Reach in Discord."
+      - "Reach recommends a dedicated Lacy clip account (or an existing relevant page with 100+ followers)"
+    auto_publish: true
+    verified_on: 2026-11-12
+    evidence:
+      - https://reachclipping.com/Lacy
+      - https://www.clyper.io/clipping-programs/lacy
+      - https://x.com/LacyHimself/status/1758167310999671133
+
+  jasontheween:
+    name: JasonTheWeen
+    niches: [streams]
+    youtube: {channel_id: UCxoKaKMzulp6sfQGOhNJnzQ, handle: "@JasonTheWeenie"}
+    twitch: jasontheween
+    basis: campaign
+    status: active
+    joined: false
+    valid_until: 2026-12-05          # pool campaign, no end date shown; re-check weekly
+    campaign:
+      name: "$9,000 Jason Pool Campaign"
+      operator: Reach (Content Rewards)
+      pay: "Share of $9,000 pool by approved views"
+      urls: [https://contentrewards.com/c/campaigns/0b178e3c-fbd3-4294-8ded-394e3da9c62f]
+      rules_url: null                # rules + 4 reference files unlock after joining
+    source: {any_date: true}
+    focus: "JasonTheWeen must be the main focus"
+    caption_must_include: ["JasonTheWeen"]
+    rules: ["Full rules locked until you join. Copy them here after joining (expect #hashtag + 30-min submit like other Reach campaigns)."]
+    auto_publish: false              # until rules are copied in
+    verified_on: 2026-11-12
+    evidence: [https://contentrewards.com/c/campaigns/0b178e3c-fbd3-4294-8ded-394e3da9c62f]
+
+  core:
+    name: CORE (Silky, Stable Ronaldo, Adapt, Marlon, Lacy, JasonTheWeen)
+    niches: [streams]
+    youtube: {channel_id: UC6H8_DvqnEp1tYEp10GzH0g, handle: "@createownruneverything"}
+    also_youtube:
+      - {channel_id: UCsx2dUKBb5vAYuXq-bqlfuQ, handle: "@SilkyLive"}
+    basis: campaign
+    status: active
+    joined: false
+    valid_until: 2026-11-30
+    campaign:
+      name: "CORE Pools ($20,000 main + $5,000 YouTube)"
+      operator: Reach (Content Rewards)
+      pay: "$20k pool: clips with 2+ CORE members, any source, min 2,000,000 approved views. $5k pool: footage from CORE's YouTube channel only, min 750,000 views."
+      urls: []
+      rules_url: https://reachclipping.com/CORE
+    source: {published_after: 2026-11-10}
+    focus: "At least TWO CORE members (Silky, Stable Ronaldo, Adapt, Marlon, Lacy, JasonTheWeen) must be on screen"
+    caption_must_include: ["CORE", "#CORE"]
+    rules:
+      - "CORE or Silky named in caption or on screen; #CORE"
+      - "Silky alone does NOT qualify for the $20k pool"
+      - "Submit within 30 minutes of posting"
+    auto_publish: true
+    verified_on: 2026-11-11
+    evidence: [https://www.clyper.io/clipping-programs/silky, https://reachclipping.com/CORE]
+
+  faze_flank_invitational:
+    name: FaZe Flank Invitational (FaZe Clan / ZooMaa, Call of Duty)
+    niches: [streams]
+    youtube: {channel_id: UCNdpD9V0PIrH1glUJ6RG4-w, handle: "@FaZeClan"}
+    twitch: [faze, zoomaa]
+    basis: campaign
+    status: active
+    joined: false
+    valid_until: 2026-11-30
+    campaign:
+      name: "$8,500 FaZe Tournament Clipping Campaign"
+      operator: ClippedIn (Content Rewards)
+      pay: "$1.00 per 1K views, $10 min / $350 max per clip"
+      urls: [https://contentrewards.com/c/campaigns/200ea21b-be80-4db8-b552-8e32b148604e]
+    source: {published_after: 2026-11-10, published_before: 2026-11-13}   # event Nov 10-12 on twitch.tv/faze, twitch.tv/zoomaa + player POVs
+    focus: "Tournament moments: the draft, clutch plays, reactions"
+    caption_must_include: ["@FaZeClan", "@ZooMaa", "@TheFlank", "#FaZeFlankInvitational"]
+    rules:
+      - "FaZe Flank logo on screen for the WHOLE clip, never over the action (render overlay needed)"
+      - "≥60% US audience; hook in first second; 9:16; ≥7 s; edited, not raw VOD"
+      - "Don't make FaZe/CDL teams or players look bad; no fake results; no politics/religion; no collab posts"
+      - "Keep every clip public ≥3 months"
+    auto_publish: false              # needs logo overlay, and the main sources are Twitch (bot is YouTube-only today)
+    verified_on: 2026-11-12
+    evidence: [https://contentrewards.com/c/campaigns/200ea21b-be80-4db8-b552-8e32b148604e]
+
+  # ───────────────────────── GTA niche ─────────────────────────
+  lysium:
+    name: Lysium (Benji Ramos, NoPixel V GTA RP)
+    niches: [gta]
+    youtube: {channel_id: UCibd5_BfQI94ClVAYvndQcA, handle: "@Lysium"}   # confirm this is the same Lysium as twitch.tv/Lysium
+    twitch: Lysium
+    basis: campaign
+    status: active
+    joined: false
+    valid_until: 2026-12-15
+    campaign:
+      name: "Lysium/Benji Ramos Clips"
+      operator: Lysium (Content Rewards)
+      pay: "$1.50 per 1K views, $1.50 min / $150 max per platform; ~$654 of $1,000 left"
+      urls: [https://contentrewards.com/c/campaigns/6d896f33-152f-42a9-92f4-662199228349]
+    source: {any_date: true}         # NoPixel V streams only
+    focus: "Lysium playing Benji Ramos in NoPixel V GTA RP, or his reactions to RP moments; clips need enough context to follow"
+    caption_must_include: ["twitch.tv/Lysium"]
+    rules:
+      - "Include Lysium's stream handle in the clip; twitch.tv/Lysium link in your bio"
+      - "High-energy, funny, or story-driven moments with context; NO drama baiting"
+      - "PRE-APPROVAL: every draft must be approved before posting; you must submit a sample video to join"
+    auto_publish: false              # draft pre-approval required
+    verified_on: 2026-11-12
+    evidence: [https://contentrewards.com/c/campaigns/6d896f33-152f-42a9-92f4-662199228349]
+
+  kai_cenat:
+    name: Kai Cenat
+    niches: [gta, streams]           # has said he'll marathon GTA 6 to 100%; watch for a GTA 6 campaign
+    youtube: {channel_id: UCoEmptob-eEGKk18c2VplJg, handle: "@KaiCenat"}
+    twitch: kaicenat
+    basis: campaign
+    status: watch                    # last Reach campaign only allowed Oct 21-31 footage; its rules page now returns 410 Gone
+    joined: false
+    valid_until: 2026-11-30
+    campaign:
+      name: "$10,000 Kai Cenat Campaign (Reach)"
+      operator: Reach (Content Rewards)
+      pay: "Share of $10,000 pool; min 350,000 approved views"
+      urls:
+        - https://contentrewards.com/c/campaigns/44a3ffcb-d4a1-492b-94a4-704919950246
+    source: {published_after: 2026-10-21, published_before: 2026-11-01}
+    focus: "Kai Cenat must be the main focus"
+    caption_must_include: ["#KaiCenat"]
+    rules: ["≥50% US/CA/UK/AU/NZ audience", "No logos, no negative portrayal, no reposts/collabs", "Submit within 30 minutes"]
+    auto_publish: true
+    verified_on: 2026-11-12
+    evidence: [https://www.clyper.io/clipping-programs/kai-cenat, https://x.com/contentrewards/status/2114411445991694569]
+
+  # ───────────────────────── MINECRAFT niche ─────────────────────────
+  fablesmp:
+    name: Fable SMP / HardcoreSMP
+    niches: [minecraft]
+    youtube: {channel_id: UC7XPGqv472Nxo7jDuIJplwQ, handle: "@FableSMP"}
+    basis: campaign
+    status: active
+    joined: false
+    valid_until: 2026-12-15
+    campaign:
+      name: "HardcoreSMP Minecraft Clipping Campaign"
+      operator: FableSMP (Content Rewards)
+      pay: "$2.00 per 1K views, $4 min / $100 max; ~$806 of $1,500 left (a separate $2.5K FableSMP media campaign also listed)"
+      urls: [https://contentrewards.com/c/campaigns/5354eab8-c428-483f-9d34-09c8db7fc324]
+    source: {any_date: true}
+    focus: "HardcoreSMP / Fable SMP server moments"
+    caption_must_include: []
+    rules: ["Brief is in a Google Doc + 5 reference files, unlocked after joining. Copy the rules here."]
+    auto_publish: false              # until the brief is copied in
+    verified_on: 2026-11-12
+    evidence: [https://contentrewards.com/c/campaigns/5354eab8-c428-483f-9d34-09c8db7fc324, https://contentrewards.com/fablesmp]
+
+  # ───────────────────────── Other active programs (not in our niches yet) ─────────────────────────
+  ishowspeed:
+    name: IShowSpeed (Expedia campaign)
+    niches: [streams]
+    youtube: {channel_id: UCWsDFcIhY2DBi3GB5uykGXA, handle: "@IShowSpeed"}
+    basis: campaign
+    status: active
+    joined: false
+    valid_until: 2026-11-30
+    campaign:
+      name: "IShowSpeed x Expedia (Reach)"
+      operator: Reach (Content Rewards)
+      pay: "$1 per 1K views, $10 min / $500 max per clip; ~$7,806 of $8,000 left"
+      urls: [https://contentrewards.com/c/campaigns/afeca1a0-f44c-46ad-8194-09d62b56589e]
+      rules_url: https://reachclipping.com/Expedia-Speed
+    source: {published_after: 2026-11-06, published_before: 2026-11-08, start_offset_s: 10589}   # ONLY the Nov 6 stream from 2:56:29 on
+    focus: "IShowSpeed travel stream; name the destination accurately"
+    caption_must_include: ["#IShowSpeed"]
+    rules:
+      - "Only the Nov 6, 2026 stream from 2:56:29 to the end; anything else is rejected"
+      - "AI-generated videos prohibited; no logos except Expedia's"
+      - "Account must be streamer/travel niche, ≥50% US/CA/UK/AU/NZ audience"
+    auto_publish: false
+    verified_on: 2026-11-11
+    evidence: [https://www.clyper.io/clipping-programs/ishowspeed]
+
+# Creators researched with NO public clipping program or permission. The bot never fetches these.
+# (Contact them for written permission, then move them to creators: with basis written_permission.)
+blocked:
+  - {name: The Shawn Ryan Show, youtube_channel_id: null, handle: "@ShawnRyanShow", reason: "No clipping program or public permission found (Clyper, Nov 2026)"}
+  - {name: xQc, handle: "@xQcOW", reason: "No program; has threatened DMCA over clips of his own shows"}
+  - {name: Stable Ronaldo, handle: null, reason: "No own program; only usable inside the CORE pool with 2+ CORE members"}
+  - {name: Adapt, handle: null, reason: "No own program; only usable inside the CORE pool"}
+  - {name: CaseOh, handle: "@CaseOh_", reason: "No program found"}
+  - {name: Sidemen, handle: "@Sidemen", reason: "No program found"}
+  - {name: Fanum, handle: null, reason: "No program found"}
+  # Rockstar Games' own trailers/footage: fan-video policy is NON-commercial; leaked footage removed.
+
+# Programs that exist but have no public listing (join via their Discord, then add an entry above):
+watchlist:
+  - {name: N3on, note: "Own program, ~$40-50 per 100k views (Business Insider, Apr 2026). Kick IRL/gambling; not our niches."}
+  - {name: Adin Ross, note: "Past campaigns, nothing public now."}
+  - {name: Clavicular, note: "Kick-funded clipping (~$700k in one month per Dexerto)."}
+  - {name: Kick Clipping Program, note: "Official Kick program via Kick Discord; terms for clippers unclear."}
+  - {name: Sketch, note: "Past CR campaigns Feb 2026, all spent."}
+  - {name: Jynxzi, note: "Past campaigns, nothing public now."}

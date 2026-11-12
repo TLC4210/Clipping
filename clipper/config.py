@@ -69,3 +69,9 @@ def load_dotenv() -> None:
         if "=" in line:
             k, v = line.split("=", 1)
             os.environ.setdefault(k.strip(), v.strip())
+
+
+def load_creators() -> tuple[dict, list]:
+    """Clip allowlist: (creators by key, blocked list). See rights/creators.yaml."""
+    raw = _load_yaml(RIGHTS_DIR / "creators.yaml")
+    return raw.get("creators") or {}, raw.get("blocked") or []
