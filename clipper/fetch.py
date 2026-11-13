@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import shutil
+import time
 from pathlib import Path
 
 from . import db, rights
@@ -44,13 +45,35 @@ def fetch_youtube(conn, source_row, yt=None) -> Path:
         cfg["_name"] = source_row["niche"]
         items = yt.videos().list(part="snippet,status", id=video_id).execute().get("items", [])
         ok, basis = rights.check(items[0], cfg) if items else (False, "video gone")
+        if ok and not basis.startswith("campaign:"):
+            from .discover import language_ok
+
+            ok, why = language_ok(items[0], cfg.get("discovery", {}).get("languages") or [])
+            basis = basis if ok else why
         if not ok:
             db.update(conn, "sources", source_row["id"], status="rejected", reject_reason=basis)
             raise PermissionError(basis)
 
     out_dir = data_dir("sources", source_row["niche"])
-    with YoutubeDL(_ydl_opts(out_dir)) as ydl:
-        ydl.extract_info(source_row["url"], download=True)
+    try:
+        with YoutubeDL(_ydl_opts(out_dir)) as ydl:
+            ydl.extract_info(source_row["url"], download=True)
+    except Exception as e:
+        if "subtitle" not in str(e).lower():
+            raise
+        # Captions are optional (moment picking falls back to audio). YouTube often rate-limits
+        # the subtitle request (HTTP 429) on its own, so retry the video without subtitles.
+        opts = _ydl_opts(out_dir)
+        opts.update(writesubtitles=False, writeautomaticsub=False)
+        with YoutubeDL(opts) as ydl:
+            ydl.extract_info(source_row["url"], download=True)
+        # Captions make the moment picks much better, so try them once more on their own.
+        time.sleep(20)
+        try:
+            with YoutubeDL({**_ydl_opts(out_dir), "skip_download": True}) as ydl:
+                ydl.extract_info(source_row["url"], download=True)
+        except Exception:
+            pass
     path = out_dir / f"{video_id}.mp4"
     if not path.exists():
         cands = [p for p in out_dir.glob(f"{video_id}.*") if p.suffix in VIDEO_EXT]

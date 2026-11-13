@@ -92,7 +92,7 @@ def render(src: dict, pick: dict, cfg: dict, out_path: Path | None = None) -> Pa
     out_path = out_path or out_dir / f"{src['id'].replace(':', '_')}_{int(start)}_{int(end)}.mp4"
     ass_path = out_path.with_suffix(".ass")
     ass_path.write_text(build_ass(dur, pick.get("hook", ""), pick.get("words", []), start, credit_line(src),
-                                  cfg.get("hook_seconds", 2.5), banner_for(cfg, src)))
+                                  cfg.get("hook_seconds", 2.5), banner_for(cfg, src)), encoding="utf-8")
 
     zoom = float(cfg.get("zoom", 1.35))
     if cfg.get("layout") == "full_crop":

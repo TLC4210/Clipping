@@ -40,6 +40,8 @@ def cmd_run(a):
     out["clips"] = pipeline.mine_and_render(a.conn, a.niche, a.limit + len(out["inbox"]))
     if a.auto_approve:
         out["approved"] = pipeline.approve(a.conn, all_passing=True, niche_name=a.niche)
+    if a.publish and a.live:
+        out["instagram_token"] = _refresh_instagram(a.niche)
     if a.publish:
         out["publish"] = pipeline.publish_approved(a.conn, a.niche, live=a.live)
     _print(out)
@@ -81,6 +83,23 @@ def cmd_auth_youtube(a):
 
     acct = load_accounts()[a.niche]["youtube"]
     print("Authorized:", publish_youtube.authorize(acct))
+
+
+def _refresh_instagram(niche: str, force: bool = False) -> dict:
+    from . import publish_instagram
+
+    acct = load_accounts().get(niche, {}).get("instagram") or {}
+    if not acct.get("enabled"):
+        return {"status": "disabled"}
+    try:
+        return publish_instagram.refresh_token(acct, force=force)
+    except Exception as e:
+        return {"status": f"failed: {e}"}
+
+
+def cmd_refresh_instagram(a):
+    niches = [a.niche] if a.niche else list(load_accounts())
+    _print({n: _refresh_instagram(n, force=a.force) for n in niches})
 
 
 def cmd_creators(a):
@@ -151,6 +170,10 @@ def main(argv=None):
     sp.add_argument("--limit", type=int)
     sp.add_argument("--live", action="store_true", help="actually upload (default is dry run)")
     add("auth-youtube", cmd_auth_youtube)
+    sp = sub.add_parser("refresh-instagram", help="renew Instagram tokens (runs automatically when publishing)")
+    sp.add_argument("--niche")
+    sp.add_argument("--force", action="store_true", help="refresh even if the token is under 7 days old")
+    sp.set_defaults(fn=cmd_refresh_instagram)
     add("status", cmd_status, niche=False)
     add("creators", cmd_creators, niche=False)
 

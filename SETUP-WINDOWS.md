@@ -90,11 +90,14 @@ Keep `privacy: private` in accounts.yaml for the first few uploads. Check them i
    - Copy the **Instagram user ID** shown next to it and paste it as `ig_user_id` under `gta:` → `instagram:` in accounts.yaml. Set `enabled: true`.
    - Repeat for the Minecraft account (`ig_minecraft_token.txt`).
 5. Your app can stay in **Development mode**. App Review isn't needed for accounts that have a role on your app.
-6. **Tokens last 60 days.** See "Still to add" below.
+6. **Tokens last 60 days.** The bot renews them automatically (once a week, on any `--live` run). To renew by hand: `python -m clipper refresh-instagram`.
 7. **Video hosting:** Instagram downloads the video from a public web link, so you need a public storage bucket. In the same Google Cloud project:
    - **Cloud Storage → Buckets → Create**. Name it something like `clipper-clips-<random>`, pick a US region, and **untick "Enforce public access prevention"** → Create. This needs billing turned on, but it costs pennies.
    - Open the bucket → *Permissions → Grant access* → principal `allUsers`, role **Storage Object Viewer** → Save.
-   - In accounts.yaml, set `public_base_url: https://storage.googleapis.com/<your-bucket-name>`.
+   - Let the bot upload to it: *IAM & Admin → Service Accounts → Create service account* (name `clipper-uploader`) → Done. Back in the bucket → *Permissions → Grant access* → paste the service account's email → role **Storage Object Admin** → Save.
+   - Open the service account → *Keys → Add key → Create new key → JSON*. Save the downloaded file as `Clipping\secrets\gcs_key.json`.
+   - In accounts.yaml, under each `instagram:` block set `gcs_bucket: <your-bucket-name>`. Leave `gcs_credentials: secrets/gcs_key.json` as it is.
+   - The bot now uploads each clip, hands Instagram the link, and deletes the file after posting.
 
 ## Part 6: Claude API key (5 min)
 
@@ -133,9 +136,3 @@ schtasks /Create /SC DAILY /ST 18:15 /TN "Clipper GTA PM" /TR "cmd /c cd /d C:\U
 ```
 
 The PC has to be on and awake at those times.
-
----
-
-## Still to add (code)
-- Auto-upload each rendered clip to the storage bucket before posting to Instagram. Until then, Instagram posting needs the files copied to the bucket by hand.
-- Auto-refresh Instagram tokens before their 60 days run out.

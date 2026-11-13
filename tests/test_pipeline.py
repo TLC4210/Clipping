@@ -54,8 +54,9 @@ def test_inbox_to_rendered_clip(env):
     spans = [(r["start_s"], r["end_s"]) for r in passing]
     assert any(s <= 30 <= e for s, e in spans) or any(s <= 70 <= e for s, e in spans), spans
 
-    # approve + dry-run publish (accounts disabled in example config -> nothing to do)
+    # approve + dry-run publish (no accounts configured -> nothing to do; ignore the real accounts.yaml)
     assert pipeline.approve(conn, all_passing=True, niche_name="gta") == len(passing)
+    pipeline.load_accounts = lambda: {}
     assert pipeline.publish_approved(conn, "gta", live=False) == []
 
 
@@ -261,3 +262,24 @@ def test_creator_discovery_and_caption_rules(env, monkeypatch):
     assert cfg["focus"] == "Lacy main focus"
     desc = pipeline.describe(src, {"description": "He lost it."}, cfg)
     assert "#Lacy" in desc and src["url"] in desc
+
+
+def test_title_fit_and_language_filter(env):
+    from clipper import discover, highlights
+
+    long = "This GTA heist went completely wrong in nine seconds and nobody saw it coming"
+    t = highlights.fit_title(long)
+    assert len(t) <= 60 and long.startswith(t) and not t.endswith(" ")
+    assert highlights.fit_title("Short title") == "Short title"
+
+    def v(title, audio=None):
+        sn = {"title": title}
+        if audio:
+            sn["defaultAudioLanguage"] = audio
+        return {"snippet": sn}
+
+    assert discover.language_ok(v("GTA 5 funny moments", "en-US"), ["en"])[0]
+    assert discover.language_ok(v("GTA 5 funny moments"), ["en"])[0]          # unset audio passes
+    assert not discover.language_ok(v("MICHAEL'S FINAL FIGHT", "hi"), ["en"])[0]
+    assert not discover.language_ok(v("जीटीए 5 मज़ेदार पल"), ["en"])[0]       # non-Latin title
+    assert discover.language_ok(v("anything", "hi"), [])[0]                   # [] = any language

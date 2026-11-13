@@ -10,6 +10,7 @@ defaults:
   zoom: 1.35                   # foreground zoom for blur_stack (1.0 = full width)
   hook_seconds: 2.5            # hook text shown at top for this long
   daily_cap_per_account: 3
+  keep_sources: false          # delete downloaded YouTube sources once their clips are cut (inbox files are never deleted)
   discovery:
     max_results_per_query: 25
     min_views: 5000
@@ -17,6 +18,7 @@ defaults:
     min_duration_s: 120
     published_within_days: 365
     license: creativeCommon    # only CC-BY sources are auto-downloadable (see rights/README.md)
+    languages: ["en"]          # commentary languages to accept (YouTube defaultAudioLanguage); [] = any
 
 niches:
   gta:

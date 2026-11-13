@@ -17,9 +17,11 @@ accounts:
       access_token_file: secrets/ig_gta_token.txt
       api_host: graph.instagram.com          # Instagram Login. Use graph.facebook.com for Facebook Login.
       api_version: v24.0
-      # Meta must fetch the video from a public URL. Set this to a bucket/CDN prefix where
-      # rendered files are synced (e.g. https://cdn.example.com/clips/). Leave empty to use
-      # resumable upload (Facebook Login hosts only).
+      # Meta must fetch the video from a public URL. Easiest: set gcs_bucket and the bot uploads
+      # each clip to that public Google Cloud Storage bucket, posts it, then deletes it.
+      gcs_bucket: ""                         # e.g. clipper-clips-abc123
+      gcs_credentials: secrets/gcs_key.json  # service-account key; blank = gcloud default login
+      # Manual alternative: a URL prefix where you sync rendered files yourself.
       public_base_url: ""
       share_to_feed: true
   minecraft:
@@ -36,6 +38,8 @@ accounts:
       access_token_file: secrets/ig_minecraft_token.txt
       api_host: graph.instagram.com
       api_version: v24.0
+      gcs_bucket: ""
+      gcs_credentials: secrets/gcs_key.json
       public_base_url: ""
       share_to_feed: true
   streams:                                   # FaZe alumni / CORE / streamer campaigns (rights/creators.yaml)
@@ -52,5 +56,7 @@ accounts:
       access_token_file: secrets/ig_streams_token.txt
       api_host: graph.instagram.com
       api_version: v24.0
+      gcs_bucket: ""
+      gcs_credentials: secrets/gcs_key.json
       public_base_url: ""
       share_to_feed: true

@@ -75,14 +75,16 @@ def load_json3_words(path) -> list[dict]:
     """Parse YouTube json3 captions into [{'start','end','text'}] (word level when available)."""
     if not path or not Path(path).exists():
         return []
-    data = json.loads(Path(path).read_text())
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
     words: list[dict] = []
     for ev in data.get("events", []):
         segs = ev.get("segs") or []
         t0 = ev.get("tStartMs", 0) / 1000
         dur = ev.get("dDurationMs", 0) / 1000
         for i, seg in enumerate(segs):
-            txt = (seg.get("utf8") or "").strip()
+            # Auto-captions carry sound tags ("[BELL]", "[Music]") and ">>" speaker-change markers;
+            # they are not speech and must not be burned into the clip.
+            txt = re.sub(r"\[[^\]]*\]|>>|&gt;&gt;", " ", seg.get("utf8") or "").strip()
             if not txt:
                 continue
             s = t0 + seg.get("tOffsetMs", 0) / 1000

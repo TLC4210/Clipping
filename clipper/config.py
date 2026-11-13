@@ -22,7 +22,7 @@ def data_dir(*parts: str) -> Path:
 def _load_yaml(path: Path) -> dict:
     if not path.exists():
         return {}
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
@@ -64,7 +64,7 @@ def load_dotenv() -> None:
     env = ROOT / ".env"
     if not env.exists():
         return
-    for line in env.read_text().splitlines():
+    for line in env.read_text(encoding="utf-8").splitlines():
         line = line.split("#", 1)[0].strip()
         if "=" in line:
             k, v = line.split("=", 1)

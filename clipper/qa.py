@@ -32,7 +32,7 @@ def check(clip: dict, src: dict, cfg: dict) -> tuple[bool, list[str]]:
         problems.append("source has no rights basis")
     if (src.get("rights_basis") or "").startswith("creativeCommon"):
         ass = path.with_suffix(".ass")
-        if not ass.exists() or "(CC BY)" not in ass.read_text():
+        if not ass.exists() or "(CC BY)" not in ass.read_text(encoding="utf-8"):
             problems.append("CC BY attribution missing from video")
         if src.get("url") and src["url"] not in (clip.get("description") or ""):
             problems.append("CC BY source link missing from description")

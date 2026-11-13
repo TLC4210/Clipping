@@ -106,15 +106,25 @@ the transcript inside the window (may be empty for no-commentary gameplay) and s
 
 Pick the windows that work as standalone vertical clips: a clear moment (funny fail, clutch play,
 chaos, surprising reveal, satisfying build) that a scroller understands in 1-2 seconds without context.
+A clip is not "the best moment"; it is a moment that survives without the video around it. Keep a pick
+only if all three hold:
+1. It opens on something already happening (motion or a complete line), not on a setup that needs the
+   previous minute.
+2. There is a turn: an attempt, then something that complicates or pays it off.
+3. It ends on the payoff or a punchline, not a trail-off.
 Skip menus, loading screens, idle walking, talking-head intros, sponsor reads, and anything that looks
 like a leaked or pre-release build or a story spoiler.
 
 For each pick:
-- start/end: tighten within the candidate (you may move each edge by up to 6 s). Start right before the
-  action; end right after the payoff. Respect the min/max length you are given.
-- hook: max 7 words, shown on screen in the first seconds. Plain words, no emojis, no hashtags,
-  must be true to what happens.
-- title: max 70 characters, for YouTube Shorts / Reels caption. Follow the niche style you are given.
+- start/end: tighten within the candidate (you may move each edge by up to 6 s). Start at most 1.5 s
+  before the action becomes visible, so frame 0 is already moving; end right after the payoff.
+  Respect the min/max length you are given.
+- hook: max 7 words, shown on screen over the first seconds; most viewers watch muted, so it must make
+  sense with no sound. Make it specific to this clip (a number, a name, the thing on screen), never a
+  generic "wait for it". Plain words, no emojis, no hashtags, must be true to what happens.
+- title: 40-60 characters (60 is where desktop search truncates; the first 40 must carry the point for
+  mobile). A concrete detail beats an adjective. At most two ALL-CAPS words. Different words from the
+  hook. Follow the niche style you are given. No claims the clip does not show.
 - description: 1-2 sentences, no hashtags (they are added later), no links.
 - graphic_violence_first_7s: true if the first 7 seconds of your cut show gore/brutal violence.
 - quality: 1-10, how likely this clip is to hold a scroller.
@@ -184,9 +194,19 @@ def _claude_pick(src: dict, cands: list[dict], words: list[dict], cfg: dict, n: 
         start = max(0.0, start)
         if cfg.get("violence_safe_hook") and p["graphic_violence_first_7s"]:
             continue
-        out.append({**p, "start": round(start, 2), "end": round(end, 2), "score": p["quality"] + c["score"] / 10})
+        out.append({**p, "start": round(start, 2), "end": round(end, 2), "score": p["quality"] + c["score"] / 10,
+                    "title": fit_title(p["title"]), "hook": " ".join(p["hook"].split()[:7])})
     out.sort(key=lambda x: -x["score"])
     return out[:n]
+
+
+def fit_title(title: str, limit: int = 60) -> str:
+    """Trim to the desktop-search limit at a word boundary (yt-package rule)."""
+    title = " ".join(title.split())
+    if len(title) <= limit:
+        return title
+    cut = title[:limit].rsplit(" ", 1)[0].rstrip(" ,;:-|")
+    return cut or title[:limit]
 
 
 def _heuristic_pick(src: dict, cands: list[dict], cfg: dict, n: int) -> list[dict]:

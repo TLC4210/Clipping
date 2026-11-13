@@ -100,6 +100,14 @@ def mine_and_render(conn, niche_name: str, limit: int = 3) -> list[int]:
                 db.update(conn, "clips", clip_id, status="qa_failed", qa_report=json.dumps([f"render: {e}"]))
                 traceback.print_exc()
         db.update(conn, "sources", src["id"], status="mined")
+        if src["id"].startswith("yt:") and not cfg.get("keep_sources", False):
+            # ~600 MB each; clips are already cut. Glob too: yt-dlp can leave several caption files.
+            vid = src["id"].split(":", 1)[1]
+            files = {Path(p) for p in (src.get("local_path"), src.get("captions_path")) if p}
+            if src.get("local_path"):
+                files |= set(Path(src["local_path"]).parent.glob(f"{vid}.*"))
+            for p in files:
+                p.unlink(missing_ok=True)
     return made
 
 
@@ -166,7 +174,7 @@ def publish_approved(conn, niche_name: str, live: bool = False, limit: int | Non
                     r = publish_youtube.upload(acct, Path(clip["path"]), clip["title"], clip["description"], tags)
                 else:
                     caption = f"{clip['title']}\n\n{clip['description']}"
-                    r = publish_instagram.publish(acct, Path(clip["path"]), caption)
+                    r = publish_instagram.publish(acct, Path(clip["path"]), caption, niche=niche_name)
                 conn.execute("INSERT INTO posts (clip_id, platform, account, remote_id, url, status, posted_at) "
                              "VALUES (?,?,?,?,?,'published',?)",
                              (clip["id"], platform, niche_name, r["remote_id"], r["url"], db.now()))
