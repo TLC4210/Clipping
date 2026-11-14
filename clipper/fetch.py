@@ -15,11 +15,21 @@ from . import db, rights
 from .config import data_dir, niche as get_niche
 
 VIDEO_EXT = {".mp4", ".mkv", ".mov", ".webm"}
+AUDIO_EXT = {".m4a", ".opus", ".mp3", ".ogg"}
+# Longer sources (stream VODs, often 5-10 GB in 1080p) are fetched as audio + captions only. The moments
+# are picked from those, then only the candidate windows are downloaded as video (fetch_sections).
+LONG_SOURCE_S = 30 * 60
+AUDIO_FORMAT = "wa[ext=m4a]/wa/ba"
+SECTION_PAD_S = 10.0  # video kept on each side of a candidate (the picker may move edges by 6 s)
 
 
-def _ydl_opts(out_dir: Path) -> dict:
+def is_long(source_row) -> bool:
+    return float(source_row["duration_s"] or 0) > LONG_SOURCE_S
+
+
+def _ydl_opts(out_dir: Path, audio_only: bool = False) -> dict:
     return {
-        "format": "bv*[height<=1080][ext=mp4]+ba[ext=m4a]/b[height<=1080]/b",
+        "format": AUDIO_FORMAT if audio_only else "bv*[height<=1080][ext=mp4]+ba[ext=m4a]/b[height<=1080]/b",
         "merge_output_format": "mp4",
         "outtmpl": str(out_dir / "%(id)s.%(ext)s"),
         "writeautomaticsub": True,
@@ -55,28 +65,29 @@ def fetch_youtube(conn, source_row, yt=None) -> Path:
             raise PermissionError(basis)
 
     out_dir = data_dir("sources", source_row["niche"])
+    audio_only = is_long(source_row)
     try:
-        with YoutubeDL(_ydl_opts(out_dir)) as ydl:
+        with YoutubeDL(_ydl_opts(out_dir, audio_only)) as ydl:
             ydl.extract_info(source_row["url"], download=True)
     except Exception as e:
         if "subtitle" not in str(e).lower():
             raise
         # Captions are optional (moment picking falls back to audio). YouTube often rate-limits
         # the subtitle request (HTTP 429) on its own, so retry the video without subtitles.
-        opts = _ydl_opts(out_dir)
+        opts = _ydl_opts(out_dir, audio_only)
         opts.update(writesubtitles=False, writeautomaticsub=False)
         with YoutubeDL(opts) as ydl:
             ydl.extract_info(source_row["url"], download=True)
         # Captions make the moment picks much better, so try them once more on their own.
         time.sleep(20)
         try:
-            with YoutubeDL({**_ydl_opts(out_dir), "skip_download": True}) as ydl:
+            with YoutubeDL({**_ydl_opts(out_dir, audio_only), "skip_download": True}) as ydl:
                 ydl.extract_info(source_row["url"], download=True)
         except Exception:
             pass
     path = out_dir / f"{video_id}.mp4"
     if not path.exists():
-        cands = [p for p in out_dir.glob(f"{video_id}.*") if p.suffix in VIDEO_EXT]
+        cands = [p for p in out_dir.glob(f"{video_id}.*") if p.suffix in VIDEO_EXT | AUDIO_EXT]
         if not cands:
             raise FileNotFoundError(f"download produced no video for {video_id}")
         path = cands[0]
@@ -90,6 +101,34 @@ def fetch_youtube(conn, source_row, yt=None) -> Path:
         status="fetched",
     )
     return path
+
+
+def fetch_sections(src: dict, ranges: list[tuple[float, float]]) -> list[dict]:
+    """Download only these time ranges of a long YouTube source as 1080p video.
+
+    Returns segments [{start, end, path}] in source time; media.source_at() maps a source time to the
+    segment file. Cuts are re-encoded at the exact times (force_keyframes_at_cuts), so segment time 0
+    is exactly `start`.
+    """
+    from yt_dlp import YoutubeDL
+    from yt_dlp.utils import download_range_func
+
+    from .media import _merge_ranges, probe
+
+    out_dir = Path(src["local_path"]).parent
+    vid = src["id"].split(":", 1)[1]
+    ranges = _merge_ranges([(round(a), round(b)) for a, b in ranges])
+    opts = {**_ydl_opts(out_dir), "writesubtitles": False, "writeautomaticsub": False,
+            "outtmpl": str(out_dir / f"{vid}.sec%(section_start)d.%(ext)s"),
+            "download_ranges": download_range_func(None, ranges), "force_keyframes_at_cuts": True}
+    with YoutubeDL(opts) as ydl:
+        ydl.extract_info(src["url"], download=True)
+    segs = []
+    for a, _ in ranges:
+        p = out_dir / f"{vid}.sec{int(a)}.mp4"
+        if p.exists():
+            segs.append({"start": float(a), "end": float(a) + probe(p)["duration"], "path": str(p)})
+    return segs
 
 
 def ingest_inbox(conn, niche_name: str) -> list[str]:

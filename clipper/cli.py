@@ -17,6 +17,24 @@ def cmd_discover(a):
     _print(discover.run(a.niche, a.conn))
 
 
+def cmd_winners(a):
+    from . import winners
+
+    _print(winners.research(a.conn, a.niche))
+
+
+def cmd_music(a):
+    from . import music
+
+    _print(music.run())
+
+
+def cmd_analytics(a):
+    from . import analytics
+
+    _print(analytics.run(a.conn, [a.niche] if a.niche else None))
+
+
 def cmd_fetch(a):
     yt = discover.youtube_client() if not a.no_recheck else None
     _print({"fetched": pipeline.fetch_pending(a.conn, a.niche, a.limit, yt=yt)})
@@ -63,6 +81,10 @@ def cmd_review(a):
     q += " ORDER BY c.id DESC LIMIT ?"
     args.append(a.limit)
     _print([dict(r) for r in a.conn.execute(q, args)])
+
+
+def cmd_rerender(a):
+    _print({"rerendered": pipeline.rerender(a.conn, a.ids)})
 
 
 def cmd_approve(a):
@@ -144,6 +166,7 @@ def main(argv=None):
         return sp
 
     add("discover", cmd_discover)
+    add("winners", cmd_winners).help = "find creator moments that went viral for competitors (run after discover)"
     add("fetch", cmd_fetch, limit=3).add_argument("--no-recheck", action="store_true",
                                                   help="skip live license re-check before download")
     add("ingest", cmd_ingest)
@@ -158,6 +181,9 @@ def main(argv=None):
     sp.add_argument("--status", default="rendered")
     sp.add_argument("--limit", type=int, default=20)
     sp.set_defaults(fn=cmd_review)
+    sp = sub.add_parser("rerender", help="render clips again from their saved edit plan")
+    sp.add_argument("ids", nargs="+", type=int)
+    sp.set_defaults(fn=cmd_rerender)
     sp = sub.add_parser("approve")
     sp.add_argument("ids", nargs="*", type=int)
     sp.add_argument("--all-passing", action="store_true")
@@ -174,6 +200,11 @@ def main(argv=None):
     sp.add_argument("--niche")
     sp.add_argument("--force", action="store_true", help="refresh even if the token is under 7 days old")
     sp.set_defaults(fn=cmd_refresh_instagram)
+    sp = sub.add_parser("music", help="trending music + what to download; writes data/reports/music-<date>.md")
+    sp.set_defaults(fn=cmd_music)
+    sp = sub.add_parser("analytics", help="check our YouTube channels' stats; writes data/reports/analytics-<date>.md")
+    sp.add_argument("--niche")
+    sp.set_defaults(fn=cmd_analytics)
     add("status", cmd_status, niche=False)
     add("creators", cmd_creators, niche=False)
 

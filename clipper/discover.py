@@ -152,4 +152,7 @@ def run(niche_name: str, conn=None, yt=None, queries: list[str] | None = None) -
         )
         if inserted:
             stats["new_ok" if ok else "rejected"] += 1
+    from . import twitch
+
+    stats["twitch"] = twitch.discover(conn, niche_name)  # top Twitch clips of joined creators (if any)
     return stats
