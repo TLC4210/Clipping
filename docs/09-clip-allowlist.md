@@ -2,7 +2,7 @@
 
 Researched 2026-11-12. The machine-readable version the bot uses is [`rights/creators.yaml`](../rights/creators.yaml). Run `python -m clipper creators` to see what the bot will use today and why.
 
-**How permission works:** a paid campaign is the permission, but **only for clippers who joined it**, and only for the footage and rules the campaign names. Every entry starts at `joined: false`. After you join on Content Rewards, set `joined: true` and copy any rules that unlock after joining into the entry.
+**How permission works:** a paid campaign is the permission, but **only for clippers who joined it**, and only for the footage and rules the campaign names. Every entry starts at `joined: false`. After you join on Content Rewards, add the creator's key to your own `rights/joined.yaml` (git-ignored) and copy any rules that unlock after joining into the entry.
 
 ## Active: our niches
 

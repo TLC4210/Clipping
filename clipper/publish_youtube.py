@@ -40,7 +40,9 @@ def authorize(acct: dict) -> str:
     yt = build("youtube", "v3", credentials=_creds(acct, interactive=True), cache_discovery=False)
     me = yt.channels().list(part="snippet", mine=True).execute()["items"][0]
     if acct.get("channel_id") and me["id"] != acct["channel_id"]:
-        raise RuntimeError(f"Logged in as channel {me['id']} but config expects {acct['channel_id']}")
+        (ROOT / acct["token_file"]).unlink(missing_ok=True)  # don't keep a login for the wrong channel
+        raise RuntimeError(f"Logged in as channel '{me['snippet']['title']}' ({me['id']}) but config expects "
+                           f"{acct['channel_id']}. Run auth-youtube again and pick the right channel.")
     return f"{me['snippet']['title']} ({me['id']})"
 
 

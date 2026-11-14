@@ -22,7 +22,7 @@ def data_dir(*parts: str) -> Path:
 def _load_yaml(path: Path) -> dict:
     if not path.exists():
         return {}
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f) or {}
 
 
@@ -64,7 +64,7 @@ def load_dotenv() -> None:
     env = ROOT / ".env"
     if not env.exists():
         return
-    for line in env.read_text().splitlines():
+    for line in env.read_text(encoding="utf-8").splitlines():
         line = line.split("#", 1)[0].strip()
         if "=" in line:
             k, v = line.split("=", 1)
@@ -74,4 +74,10 @@ def load_dotenv() -> None:
 def load_creators() -> tuple[dict, list]:
     """Clip allowlist: (creators by key, blocked list). See rights/creators.yaml."""
     raw = _load_yaml(RIGHTS_DIR / "creators.yaml")
-    return raw.get("creators") or {}, raw.get("blocked") or []
+    creators = raw.get("creators") or {}
+    # Which campaigns YOU joined lives in rights/joined.yaml (git-ignored), so a shared copy of this repo
+    # never clips a campaign its user hasn't joined. See rights/joined.example.yaml.
+    for key, when in ((_load_yaml(RIGHTS_DIR / "joined.yaml").get("joined") or {}).items()):
+        if key in creators and when:
+            creators[key]["joined"] = True
+    return creators, raw.get("blocked") or []

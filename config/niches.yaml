@@ -6,10 +6,19 @@ defaults:
   clip_max_s: 45
   clips_per_source: 3          # never mine more than this from one source video
   min_gap_between_clips_s: 60  # clips from the same source must be this far apart
-  layout: blur_stack           # blur_stack | full_crop
+  layout: blur_stack           # blur_stack | full_crop | facecam_stack (streamer cam on top, screen below)
   zoom: 1.35                   # foreground zoom for blur_stack (1.0 = full width)
+  burn_credit: false           # credit the source in the description only, not as text on the video
+  jump_cuts: true              # cut quiet dead air (no words, audio well below normal) inside each clip
+  # Sound effects / music: only files you put in data/assets/sfx and data/assets/music (human-made and
+  # licensed for reuse; never AI-generated: the Reach campaigns ban AI content). Claude picks sfx by file
+  # name (e.g. vine_boom.wav -> "vine_boom"). Music is a quiet bed under the clip's own audio.
+  music: false
+  music_volume: 0.25           # music bed level under the clip audio (0.1 = quiet, 0.25 = clearly there)
+  sfx_volume: 0.7
   hook_seconds: 2.5            # hook text shown at top for this long
   daily_cap_per_account: 3
+  keep_sources: false          # delete downloaded YouTube sources once their clips are cut (inbox files are never deleted)
   discovery:
     max_results_per_query: 25
     min_views: 5000
@@ -17,10 +26,12 @@ defaults:
     min_duration_s: 120
     published_within_days: 365
     license: creativeCommon    # only CC-BY sources are auto-downloadable (see rights/README.md)
+    languages: ["en"]          # commentary languages to accept (YouTube defaultAudioLanguage); [] = any
 
 niches:
   gta:
     display: GTA
+    music: true                  # dark hip-hop / electronic beds from data/assets/music/youtube/gta
     queries:
       - "GTA 6 gameplay"
       - "GTA 5 funny moments"
@@ -34,6 +45,7 @@ niches:
     spoiler_card_until: "2026-12-10"   # add "spoiler-free" / warning card on GTA 6 clips until this date
   minecraft:
     display: Minecraft
+    music: true                  # bouncy / calm beds from data/assets/music/youtube/minecraft
     queries:
       - "minecraft funny moments"
       - "minecraft hardcore highlights"
@@ -45,9 +57,13 @@ niches:
     violence_safe_hook: false
   streams:
     display: Stream clips
+    layout: facecam_stack        # the standard stream-clip look; falls back to blur_stack if no cam is found
     # No CC search for this niche: sources come only from rights/creators.yaml (campaigns you joined).
     queries: []
-    title_style: "streamer-clip style: name the streamer, punchy, no fake claims, no drama bait"
+    # From competitor research (Nov 2026, Shorts with 1-4M views): streamer name first, then exactly what
+    # happened in past tense, often two members interacting ("Jason Made Ron Read Lacy's Hoodie"), ending
+    # with one or two emoji like 😭 or 💀. Winning lengths: 10-55 s.
+    title_style: "streamer-clip style: start with the streamer's name, then what happened in past tense, name the other CORE members involved, may end with one or two emoji (😭 💀); no fake claims, no drama bait"
     hashtags: ["#stream", "#shorts"]
     exclude_title_terms: []
     violence_safe_hook: false

@@ -54,15 +54,14 @@ python -m clipper status
 
 Your own gameplay goes in `data/inbox/gta/` or `data/inbox/minecraft/`. `run` picks it up automatically. This is the best source: fully original and no rights questions.
 
-When you're ready for full automation, `run --auto-approve --publish --live` does everything. Keep YouTube `privacy: private` for the first batch, then switch it to `public`. Schedule it with cron, for example twice a day:
-```
-15 10,18 * * *  cd ~/Clipping && .venv/bin/python -m clipper run --niche gta --limit 2 --auto-approve --publish --live
-```
+The daily jobs (3 AM research, 4 AM clips, 8 AM analytics) are installed with `scripts\install-schedule.ps1`; see Part 9 of [`SETUP-WINDOWS.md`](SETUP-WINDOWS.md). They make clips for review and never post. `run --auto-approve --publish --live` exists for full automation, but campaign clips should stay human-approved. Keep YouTube `privacy: private` for the first batch, then switch it to `public`.
+
+Other commands: `rerender <ids>` (re-render from the saved edit plan), `music` (trending-music report), `analytics` (channel stats report), `winners` (competitor research), `doctor` (check the setup).
 
 ## Creator allowlist (streamer campaigns)
 `rights/creators.yaml` lists creators who pay for or allow clips: Lacy, JasonTheWeen, CORE, FaZe Flank, Lysium (GTA RP), Fable SMP (Minecraft), Kai Cenat (watch), and IShowSpeed. The plain-English version is `docs/09-clip-allowlist.md`.
 
-- After you **join** a campaign on Content Rewards, set `joined: true` for it. From then on, `discover` pulls that creator's recent YouTube uploads and stream VODs (cheap `playlistItems` calls, not search).
+- After you **join** a campaign on Content Rewards, add its key to `rights/joined.yaml`. From then on, `discover` pulls that creator's recent YouTube uploads and stream VODs (cheap `playlistItems` calls, not search).
 - Campaign rules flow through the pipeline:
   - The AI picker is told who must be the focus.
   - Required caption tags like `#Lacy` are added to captions, and QA checks they're there.

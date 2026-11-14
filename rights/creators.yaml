@@ -2,9 +2,10 @@
 # Researched 2026-11-12. Campaigns change weekly, so re-verify before relying on an entry.
 #
 # How the bot uses this file:
-#   - It only fetches from a creator when `status: active` AND `joined: true` AND today is
+#   - It only fetches from a creator when `status: active` AND you joined it (rights/joined.yaml) AND today is
 #     within `valid_until`. A campaign's permission covers only clippers who have JOINED it,
-#     so every entry starts at joined: false. Flip it after you join on Content Rewards.
+#     so every entry here stays joined: false. After you join on Content Rewards, add the
+#     creator's key to rights/joined.yaml (your own, git-ignored copy; see joined.example.yaml).
 #   - It searches each creator's YouTube uploads (`youtube.channel_id`), limited by `source`.
 #   - `caption_must_include` is added to every post caption and checked in QA.
 #   - `focus` is passed to the AI picker ("X must be the main focus").
@@ -24,7 +25,7 @@ creators:
     twitch: lacy
     basis: campaign
     status: active
-    joined: false
+    joined: false                    # set in rights/joined.yaml once you join
     valid_until: 2026-11-22          # 30-day campaign launched ~Oct 20-23; confirm end date on listing
     campaign:
       name: "$30,000 Lacy 30 Day Campaign"
@@ -60,47 +61,58 @@ creators:
     twitch: jasontheween
     basis: campaign
     status: active
-    joined: false
-    valid_until: 2026-12-05          # pool campaign, no end date shown; re-check weekly
+    joined: false                    # set in rights/joined.yaml once you join
+    valid_until: 2026-11-30          # "Campaign ending: 30th of November" (brief)
     campaign:
       name: "$9,000 Jason Pool Campaign"
       operator: Reach (Content Rewards)
-      pay: "Share of $9,000 pool by approved views"
+      pay: "Share of $9,000 pool by approved views; your clips need 700,000 total approved views to share"
       urls: [https://contentrewards.com/c/campaigns/0b178e3c-fbd3-4294-8ded-394e3da9c62f]
-      rules_url: null                # rules + 4 reference files unlock after joining
+      rules_url: https://reachclipping.com/JasonTheWeen
     source: {any_date: true}
     focus: "JasonTheWeen must be the main focus"
-    caption_must_include: ["JasonTheWeen"]
-    rules: ["Full rules locked until you join. Copy them here after joining (expect #hashtag + 30-min submit like other Reach campaigns)."]
-    auto_publish: false              # until rules are copied in
-    verified_on: 2026-11-12
+    caption_must_include: ["JasonTheWeen", "#JasonTheWeen"]
+    rules:
+      - "Source: any video/stream/clip featuring JasonTheWeen"
+      - "JasonTheWeen's name in caption or text overlay; #JasonTheWeen in caption"
+      - "700,000 total approved views to join the revenue share"
+      - "Reach-wide: no logos, no botting/reposts/collabs, no AI-generated content, submit within 30 minutes"
+    auto_publish: true
+    verified_on: 2026-11-13
     evidence: [https://contentrewards.com/c/campaigns/0b178e3c-fbd3-4294-8ded-394e3da9c62f]
 
   core:
     name: CORE (Silky, Stable Ronaldo, Adapt, Marlon, Lacy, JasonTheWeen)
     niches: [streams]
     youtube: {channel_id: UC6H8_DvqnEp1tYEp10GzH0g, handle: "@createownruneverything"}
-    also_youtube:
-      - {channel_id: UCsx2dUKBb5vAYuXq-bqlfuQ, handle: "@SilkyLive"}
+    # Not @SilkyLive: the $5k pool takes CORE-channel footage only and Silky alone doesn't count for the $20k pool.
     basis: campaign
     status: active
-    joined: false
+    joined: false                    # set in rights/joined.yaml once you join
     valid_until: 2026-11-30
     campaign:
       name: "CORE Pools ($20,000 main + $5,000 YouTube)"
       operator: Reach (Content Rewards)
       pay: "$20k pool: clips with 2+ CORE members, any source, min 2,000,000 approved views. $5k pool: footage from CORE's YouTube channel only, min 750,000 views."
-      urls: []
+      urls:
+        - https://contentrewards.com/c/campaigns/2886f500-f062-48dd-a9b4-9de5725f8186   # $20k: 2+ members, NOT CORE YouTube footage
+        - https://contentrewards.com/c/campaigns/ea0fc271-d32e-49fb-adff-d08ef7f3cc23   # $5k: CORE YouTube channel footage only
       rules_url: https://reachclipping.com/CORE
-    source: {published_after: 2026-11-10}
+    source: {any_date: true}         # rules page has no date limit (an earlier Nov-10 cutoff here was a mistake)
     focus: "At least TWO CORE members (Silky, Stable Ronaldo, Adapt, Marlon, Lacy, JasonTheWeen) must be on screen"
     caption_must_include: ["CORE", "#CORE"]
+    # "#CORE and hashtags for each CORE member in the video": added for every member named in the
+    # title/hook/description. #Lacy / #JasonTheWeen also make the clip eligible for those pools.
+    member_hashtags: {Lacy: "#Lacy", Jason: "#JasonTheWeen", JasonTheWeen: "#JasonTheWeen", Ron: "#StableRonaldo",
+                      Stable Ronaldo: "#StableRonaldo", Marlon: "#Marlon", Silky: "#Silky", Adapt: "#Adapt"}
     rules:
       - "CORE or Silky named in caption or on screen; #CORE"
       - "Silky alone does NOT qualify for the $20k pool"
+      - "Footage from the CORE YouTube channel goes to the $5k pool only (the bot's source) — submit there"
+      - "Hashtag for each CORE member in the clip, plus #CORE; English captions only"
       - "Submit within 30 minutes of posting"
     auto_publish: true
-    verified_on: 2026-11-11
+    verified_on: 2026-11-13           # page says Live; ends 11/30/26; Reach bans AI-generated content (one strike, all campaigns)
     evidence: [https://www.clyper.io/clipping-programs/silky, https://reachclipping.com/CORE]
 
   faze_flank_invitational:
@@ -129,6 +141,35 @@ creators:
     verified_on: 2026-11-12
     evidence: [https://contentrewards.com/c/campaigns/200ea21b-be80-4db8-b552-8e32b148604e]
 
+  clix:
+    name: Clix
+    niches: [streams]                # Fortnite pro; streaming the GTA 6 marathon with Lacy/Ron/Jason/Marlon in Miami (Nov 2026)
+    youtube: {channel_id: UCym0XKpmoSl594oT9yhEk0Q, handle: "@Clix"}
+    twitch: clix
+    basis: campaign
+    status: active
+    joined: false                    # set in rights/joined.yaml once you join
+    valid_until: 2026-11-30          # "[November]" pool
+    campaign:
+      name: "$5,000 Clix Pool Campaign [November]"
+      operator: Reach (Content Rewards)
+      pay: "Share of $5,000 pool by approved views; 500,000 approved views minimum before payouts"
+      urls: [https://contentrewards.com/c/campaigns/17ff5e37-a774-4a75-a1a4-d47dba98a60e]
+      rules_url: https://reachclipping.com/Clix
+    source: {published_after: 2026-01-01}   # 2026+ footage only
+    focus: "Clix must be the primary focus of the clip"
+    caption_must_include: ["Clix", "#Clix"]
+    rules:
+      - "Clix's name in caption or text overlay; #Clix in caption"
+      - "TikTok, Instagram Reels and YouTube Shorts only (no X)"
+      - ">=50% US/CA/UK/AU/NZ audience; account niche must match"
+      - "No logos, no negative portrayal / hate farming, no botting/reposts/collabs"
+      - "AI-generated videos not allowed (Reach: one strike, out of every campaign)"
+      - "Submit within 30 minutes of posting"
+    auto_publish: true
+    verified_on: 2026-11-13
+    evidence: [https://reachclipping.com/Clix, https://contentrewards.com/c/campaigns/17ff5e37-a774-4a75-a1a4-d47dba98a60e]
+
   # ───────────────────────── GTA niche ─────────────────────────
   lysium:
     name: Lysium (Benji Ramos, NoPixel V GTA RP)
@@ -151,6 +192,7 @@ creators:
       - "Include Lysium's stream handle in the clip; twitch.tv/Lysium link in your bio"
       - "High-energy, funny, or story-driven moments with context; NO drama baiting"
       - "PRE-APPROVAL: every draft must be approved before posting; you must submit a sample video to join"
+      - "NOT JOINED (2026-11-13): 'Apply' needs a video sample of your work — your call"
     auto_publish: false              # draft pre-approval required
     verified_on: 2026-11-12
     evidence: [https://contentrewards.com/c/campaigns/6d896f33-152f-42a9-92f4-662199228349]
@@ -161,7 +203,7 @@ creators:
     youtube: {channel_id: UCoEmptob-eEGKk18c2VplJg, handle: "@KaiCenat"}
     twitch: kaicenat
     basis: campaign
-    status: watch                    # last Reach campaign only allowed Oct 21-31 footage; its rules page now returns 410 Gone
+    status: watch                    # last Reach campaign only allowed Oct 21-31 footage; rules page 410 Gone; CR listing no longer loads (2026-11-13)
     joined: false
     valid_until: 2026-11-30
     campaign:
@@ -185,7 +227,7 @@ creators:
     youtube: {channel_id: UC7XPGqv472Nxo7jDuIJplwQ, handle: "@FableSMP"}
     basis: campaign
     status: active
-    joined: false
+    joined: false                    # set in rights/joined.yaml once you join
     valid_until: 2026-12-15
     campaign:
       name: "HardcoreSMP Minecraft Clipping Campaign"
@@ -195,9 +237,16 @@ creators:
     source: {any_date: true}
     focus: "HardcoreSMP / Fable SMP server moments"
     caption_must_include: []
-    rules: ["Brief is in a Google Doc + 5 reference files, unlocked after joining. Copy the rules here."]
-    auto_publish: false              # until the brief is copied in
-    verified_on: 2026-11-12
+    brief: https://docs.google.com/document/d/1KyPkKdtiypsFH5eOredVeMxzfU0MSpmlSiaFhjg5Bi0/edit
+    footage: https://drive.google.com/drive/folders/1cDTICPyoy2NEbYcNI_epQdsvye8vN_e0   # campaign-supplied; not on YouTube
+    rules:
+      - "Use the provided Drive footage; promote the server (coming soon), Java Edition only"
+      - "'HardcoreSMP' must be SPOKEN; discord.gg/hcsmp spoken AND on screen near the end"
+      - "Pin a comment on every upload: 'Join the Discord -> discord.gg/hcsmp' (unpinned = ignored)"
+      - "Original narration/editing expected; no invented features, dates or giveaways; Minecraft-focused accounts only"
+      - "Keep posts live 30 days; >=1% engagement; Tier 1/2 audience"
+    auto_publish: false              # needs voice narration, Drive footage and a pinned comment — the bot can't do these yet
+    verified_on: 2026-11-13
     evidence: [https://contentrewards.com/c/campaigns/5354eab8-c428-483f-9d34-09c8db7fc324, https://contentrewards.com/fablesmp]
 
   # ───────────────────────── Other active programs (not in our niches yet) ─────────────────────────

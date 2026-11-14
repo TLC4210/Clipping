@@ -17,6 +17,33 @@ def cmd_discover(a):
     _print(discover.run(a.niche, a.conn))
 
 
+def cmd_winners(a):
+    from . import winners
+
+    _print(winners.research(a.conn, a.niche))
+
+
+def cmd_doctor(a):
+    from . import doctor
+
+    text, ok = doctor.report()
+    print(text)
+    if not ok:
+        raise SystemExit(1)
+
+
+def cmd_music(a):
+    from . import music
+
+    _print(music.run())
+
+
+def cmd_analytics(a):
+    from . import analytics
+
+    _print(analytics.run(a.conn, [a.niche] if a.niche else None))
+
+
 def cmd_fetch(a):
     yt = discover.youtube_client() if not a.no_recheck else None
     _print({"fetched": pipeline.fetch_pending(a.conn, a.niche, a.limit, yt=yt)})
@@ -40,6 +67,8 @@ def cmd_run(a):
     out["clips"] = pipeline.mine_and_render(a.conn, a.niche, a.limit + len(out["inbox"]))
     if a.auto_approve:
         out["approved"] = pipeline.approve(a.conn, all_passing=True, niche_name=a.niche)
+    if a.publish and a.live:
+        out["instagram_token"] = _refresh_instagram(a.niche)
     if a.publish:
         out["publish"] = pipeline.publish_approved(a.conn, a.niche, live=a.live)
     _print(out)
@@ -63,6 +92,10 @@ def cmd_review(a):
     _print([dict(r) for r in a.conn.execute(q, args)])
 
 
+def cmd_rerender(a):
+    _print({"rerendered": pipeline.rerender(a.conn, a.ids)})
+
+
 def cmd_approve(a):
     _print({"approved": pipeline.approve(a.conn, a.ids, all_passing=a.all_passing, niche_name=a.niche)})
 
@@ -81,6 +114,23 @@ def cmd_auth_youtube(a):
 
     acct = load_accounts()[a.niche]["youtube"]
     print("Authorized:", publish_youtube.authorize(acct))
+
+
+def _refresh_instagram(niche: str, force: bool = False) -> dict:
+    from . import publish_instagram
+
+    acct = load_accounts().get(niche, {}).get("instagram") or {}
+    if not acct.get("enabled"):
+        return {"status": "disabled"}
+    try:
+        return publish_instagram.refresh_token(acct, force=force)
+    except Exception as e:
+        return {"status": f"failed: {e}"}
+
+
+def cmd_refresh_instagram(a):
+    niches = [a.niche] if a.niche else list(load_accounts())
+    _print({n: _refresh_instagram(n, force=a.force) for n in niches})
 
 
 def cmd_creators(a):
@@ -125,6 +175,7 @@ def main(argv=None):
         return sp
 
     add("discover", cmd_discover)
+    add("winners", cmd_winners).help = "find creator moments that went viral for competitors (run after discover)"
     add("fetch", cmd_fetch, limit=3).add_argument("--no-recheck", action="store_true",
                                                   help="skip live license re-check before download")
     add("ingest", cmd_ingest)
@@ -139,6 +190,9 @@ def main(argv=None):
     sp.add_argument("--status", default="rendered")
     sp.add_argument("--limit", type=int, default=20)
     sp.set_defaults(fn=cmd_review)
+    sp = sub.add_parser("rerender", help="render clips again from their saved edit plan")
+    sp.add_argument("ids", nargs="+", type=int)
+    sp.set_defaults(fn=cmd_rerender)
     sp = sub.add_parser("approve")
     sp.add_argument("ids", nargs="*", type=int)
     sp.add_argument("--all-passing", action="store_true")
@@ -151,6 +205,17 @@ def main(argv=None):
     sp.add_argument("--limit", type=int)
     sp.add_argument("--live", action="store_true", help="actually upload (default is dry run)")
     add("auth-youtube", cmd_auth_youtube)
+    sp = sub.add_parser("refresh-instagram", help="renew Instagram tokens (runs automatically when publishing)")
+    sp.add_argument("--niche")
+    sp.add_argument("--force", action="store_true", help="refresh even if the token is under 7 days old")
+    sp.set_defaults(fn=cmd_refresh_instagram)
+    sp = sub.add_parser("doctor", help="check this setup and list what's missing")
+    sp.set_defaults(fn=cmd_doctor)
+    sp = sub.add_parser("music", help="trending music + what to download; writes data/reports/music-<date>.md")
+    sp.set_defaults(fn=cmd_music)
+    sp = sub.add_parser("analytics", help="check our YouTube channels' stats; writes data/reports/analytics-<date>.md")
+    sp.add_argument("--niche")
+    sp.set_defaults(fn=cmd_analytics)
     add("status", cmd_status, niche=False)
     add("creators", cmd_creators, niche=False)
 

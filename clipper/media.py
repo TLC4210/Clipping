@@ -32,10 +32,11 @@ def probe(path) -> dict:
     }
 
 
-def audio_energy(path, hop_s: float = 0.5) -> np.ndarray:
-    """RMS loudness (dBFS) per hop. Empty array if no audio."""
+def audio_energy(path, hop_s: float = 0.5, start: float | None = None, dur: float | None = None) -> np.ndarray:
+    """RMS loudness (dBFS) per hop, of the whole file or [start, start+dur]. Empty array if no audio."""
+    seek = (["-ss", f"{start:.3f}"] if start is not None else []) + (["-t", f"{dur:.3f}"] if dur is not None else [])
     proc = subprocess.run(
-        ["ffmpeg", "-v", "error", "-i", str(path), "-vn", "-ac", "1", "-ar", str(SR), "-f", "s16le", "-"],
+        ["ffmpeg", "-v", "error", *seek, "-i", str(path), "-vn", "-ac", "1", "-ar", str(SR), "-f", "s16le", "-"],
         capture_output=True,
     )
     if proc.returncode != 0 or not proc.stdout:
@@ -75,14 +76,16 @@ def load_json3_words(path) -> list[dict]:
     """Parse YouTube json3 captions into [{'start','end','text'}] (word level when available)."""
     if not path or not Path(path).exists():
         return []
-    data = json.loads(Path(path).read_text())
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
     words: list[dict] = []
     for ev in data.get("events", []):
         segs = ev.get("segs") or []
         t0 = ev.get("tStartMs", 0) / 1000
         dur = ev.get("dDurationMs", 0) / 1000
         for i, seg in enumerate(segs):
-            txt = (seg.get("utf8") or "").strip()
+            # Auto-captions carry sound tags ("[BELL]", "[Music]") and ">>" speaker-change markers;
+            # they are not speech and must not be burned into the clip.
+            txt = re.sub(r"\[[^\]]*\]|>>|&gt;&gt;", " ", seg.get("utf8") or "").strip()
             if not txt:
                 continue
             s = t0 + seg.get("tOffsetMs", 0) / 1000
@@ -96,20 +99,69 @@ def load_json3_words(path) -> list[dict]:
     return words
 
 
-def transcribe_local(path) -> list[dict]:
-    """Optional speech-to-text with faster-whisper (pip install faster-whisper). Word level."""
+_WHISPER = {}
+
+
+def _whisper_model():
+    """openai-whisper on CPU (faster-whisper's PyAV DLLs are blocked by Windows App Control here)."""
+    import os
+
+    import whisper
+
+    name = os.environ.get("CLIPPER_WHISPER_MODEL", "small")
+    if name not in _WHISPER:
+        _WHISPER[name] = whisper.load_model(name, device="cpu")
+    return _WHISPER[name]
+
+
+def transcribe_ranges(path, ranges: list[tuple[float, float]], language: str | None = "en") -> list[dict]:
+    """Word-level speech-to-text for only the given (start, end) windows of a source.
+
+    Used when YouTube captions are missing (they are often rate-limited). Transcribing a dozen
+    30-60 s windows takes a few minutes on CPU instead of the whole multi-hour stream.
+    Returns [] if whisper is not installed.
+    """
     try:
-        from faster_whisper import WhisperModel
+        model = _whisper_model()
     except ImportError:
         return []
-    model = WhisperModel("small", device="auto", compute_type="int8")
-    segments, _ = model.transcribe(str(path), word_timestamps=True, vad_filter=True)
-    return [
-        {"start": w.start, "end": w.end, "text": w.word.strip()}
-        for seg in segments
-        for w in (seg.words or [])
-        if w.word.strip()
-    ]
+    words: list[dict] = []
+    for start, end in _merge_ranges(ranges):
+        pcm = subprocess.run(
+            ["ffmpeg", "-v", "error", "-ss", f"{start:.2f}", "-t", f"{end - start:.2f}", "-i", str(path),
+             "-vn", "-ac", "1", "-ar", str(SR), "-f", "s16le", "-"],
+            capture_output=True,
+        ).stdout
+        if not pcm:
+            continue
+        audio = np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
+        res = model.transcribe(audio, language=language, word_timestamps=True, fp16=False,
+                               condition_on_previous_text=False)
+        for seg in res.get("segments", []):
+            for w in seg.get("words") or []:
+                txt = w["word"].strip()
+                if txt:
+                    words.append({"start": start + w["start"], "end": start + w["end"], "text": txt})
+    words.sort(key=lambda w: w["start"])
+    return words
+
+
+def _merge_ranges(ranges: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    out: list[list[float]] = []
+    for a, b in sorted((max(0.0, a), b) for a, b in ranges if b > a):
+        if out and a <= out[-1][1]:
+            out[-1][1] = max(out[-1][1], b)
+        else:
+            out.append([a, b])
+    return [(a, b) for a, b in out]
+
+
+def source_at(src: dict, t: float) -> tuple[str, float]:
+    """(file, time in that file) for source time t: a downloaded section of a long source, else the source."""
+    for s in src.get("segments") or []:
+        if s["start"] <= t <= s["end"]:
+            return s["path"], t - s["start"]
+    return src["local_path"], t
 
 
 def words_between(words: list[dict], start: float, end: float) -> list[dict]:

@@ -1,0 +1,9 @@
+# Copy to rights/joined.yaml (git-ignored) and list the campaigns YOU joined on Content Rewards.
+# The bot only clips a creator from rights/creators.yaml when their key is listed here
+# (and the campaign is active and in date). Joining is what gives you permission to clip.
+#
+# key (from rights/creators.yaml): date you joined
+joined:
+  # lacy: 2026-11-13
+  # jasontheween: 2026-11-13
+  # core: 2026-11-13

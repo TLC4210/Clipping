@@ -47,6 +47,9 @@ def search_ids(yt, query: str, cfg: dict) -> list[str]:
     )
     if disc.get("license") == "creativeCommon":
         params["videoLicense"] = "creativeCommon"
+    langs = disc.get("languages") or []
+    if langs:
+        params["relevanceLanguage"] = langs[0]
     resp = yt.search().list(**params).execute()
     return [it["id"]["videoId"] for it in resp.get("items", []) if it.get("id", {}).get("videoId")]
 
@@ -70,7 +73,26 @@ def evaluate(video: dict, cfg: dict) -> tuple[bool, str]:
     views = int(video.get("statistics", {}).get("viewCount", 0))
     if views < disc["min_views"] and not basis.startswith("campaign:"):
         return False, f"only {views} views"
+    ok, why = language_ok(video, disc.get("languages") or [])
+    if not ok and not basis.startswith("campaign:"):
+        return False, why
     return True, basis
+
+
+def language_ok(video: dict, langs: list[str]) -> tuple[bool, str]:
+    """Reject commentary in a language the channel isn't for. Unset audio language passes,
+    except a title mostly in a non-Latin script (e.g. Devanagari), which signals the commentary."""
+    if not langs:
+        return True, ""
+    sn = video.get("snippet", {})
+    audio = (sn.get("defaultAudioLanguage") or "").lower()
+    if audio and not any(audio == l or audio.startswith(l + "-") for l in langs):
+        return False, f"audio language {audio}"
+    title = sn.get("title") or ""
+    letters = [ch for ch in title if ch.isalpha()]
+    if letters and sum(ord(ch) > 0x24F for ch in letters) / len(letters) > 0.3:
+        return False, "title not in a Latin script"
+    return True, ""
 
 
 def creator_upload_ids(yt, niche_name: str, per_channel: int = 25) -> list[str]:
@@ -130,4 +152,7 @@ def run(niche_name: str, conn=None, yt=None, queries: list[str] | None = None) -
         )
         if inserted:
             stats["new_ok" if ok else "rejected"] += 1
+    from . import twitch
+
+    stats["twitch"] = twitch.discover(conn, niche_name)  # top Twitch clips of joined creators (if any)
     return stats

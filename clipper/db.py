@@ -42,7 +42,9 @@ CREATE TABLE IF NOT EXISTS clips (
     path TEXT,
     status TEXT NOT NULL DEFAULT 'planned',  -- planned|rendered|qa_failed|approved|rejected|published
     qa_report TEXT,
-    created_at TEXT NOT NULL
+    created_at TEXT NOT NULL,
+    edit TEXT,  -- JSON edit plan (pieces, zooms, emojis, sfx, captions, facecam) for re-rendering
+    ig_path TEXT  -- Instagram version when its music differs (YouTube-only licensed tracks)
 );
 CREATE TABLE IF NOT EXISTS posts (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,6 +71,11 @@ def connect(path=None) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.executescript(SCHEMA)
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(clips)")}
+    for col in ("edit", "ig_path"):
+        if col not in cols:
+            conn.execute(f"ALTER TABLE clips ADD COLUMN {col} TEXT")
+    conn.commit()
     return conn
 
 
