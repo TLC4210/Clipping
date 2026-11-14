@@ -74,4 +74,10 @@ def load_dotenv() -> None:
 def load_creators() -> tuple[dict, list]:
     """Clip allowlist: (creators by key, blocked list). See rights/creators.yaml."""
     raw = _load_yaml(RIGHTS_DIR / "creators.yaml")
-    return raw.get("creators") or {}, raw.get("blocked") or []
+    creators = raw.get("creators") or {}
+    # Which campaigns YOU joined lives in rights/joined.yaml (git-ignored), so a shared copy of this repo
+    # never clips a campaign its user hasn't joined. See rights/joined.example.yaml.
+    for key, when in ((_load_yaml(RIGHTS_DIR / "joined.yaml").get("joined") or {}).items()):
+        if key in creators and when:
+            creators[key]["joined"] = True
+    return creators, raw.get("blocked") or []

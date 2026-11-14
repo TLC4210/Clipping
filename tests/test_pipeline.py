@@ -554,3 +554,25 @@ def test_music_report(env, monkeypatch):
     out = music.run(yt=YT())
     text = open(out["report"], encoding="utf-8").read()
     assert "Hit Song" in text and "song: Phonk X (5,000 views)" in text and out["library"]["youtube"] == 0
+
+
+def test_joined_override_and_doctor(env, monkeypatch, tmp_path):
+    """Joined campaigns come from the personal rights/joined.yaml; the shared allowlist stays joined: false."""
+    import yaml
+
+    from clipper import config, doctor
+
+    shared = yaml.safe_load(open(config.RIGHTS_DIR / "creators.yaml", encoding="utf-8"))["creators"]
+    assert not any(c.get("joined") for c in shared.values()), "creators.yaml must ship with joined: false"
+
+    rights = tmp_path / "rights"
+    rights.mkdir()
+    (rights / "creators.yaml").write_text(yaml.safe_dump({"creators": {"lacy": {"joined": False}, "core": {}}}))
+    monkeypatch.setattr(config, "RIGHTS_DIR", rights)
+    assert not config.load_creators()[0]["lacy"]["joined"]
+    (rights / "joined.yaml").write_text("joined:\n  lacy: 2026-11-13\n  nobody: 2026-11-13\n")
+    creators = config.load_creators()[0]
+    assert creators["lacy"]["joined"] and not creators["core"].get("joined") and "nobody" not in creators
+
+    text, _ = doctor.report()
+    assert "python" in text and "ffmpeg" in text and "campaigns joined" in text

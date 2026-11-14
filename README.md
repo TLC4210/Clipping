@@ -4,7 +4,9 @@ This repo collects research on running a short-form clipping operation for **You
 
 Research date: **2026-11-12**. Platform rules and campaign rates change often, so re-check anything marked *verify* before you rely on it.
 
-**Setting it up on Windows: [`SETUP-WINDOWS.md`](SETUP-WINDOWS.md).** The pipeline code is in [`PIPELINE.md`](PIPELINE.md) (setup, daily commands, how it works), with the code in `clipper/`.
+**Want the same setup? Follow [`SETUP-WINDOWS.md`](SETUP-WINDOWS.md)** (about 2 hours). It covers the tools, your own accounts and API keys, joining campaigns, the music library, the daily schedule and the morning routine. Run `python -m clipper doctor` at any point to see what's still missing.
+
+The pipeline is described in [`PIPELINE.md`](PIPELINE.md) (daily commands, how it works), with the code in `clipper/`.
 
 ## Files
 

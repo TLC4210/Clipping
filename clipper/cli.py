@@ -23,6 +23,15 @@ def cmd_winners(a):
     _print(winners.research(a.conn, a.niche))
 
 
+def cmd_doctor(a):
+    from . import doctor
+
+    text, ok = doctor.report()
+    print(text)
+    if not ok:
+        raise SystemExit(1)
+
+
 def cmd_music(a):
     from . import music
 
@@ -200,6 +209,8 @@ def main(argv=None):
     sp.add_argument("--niche")
     sp.add_argument("--force", action="store_true", help="refresh even if the token is under 7 days old")
     sp.set_defaults(fn=cmd_refresh_instagram)
+    sp = sub.add_parser("doctor", help="check this setup and list what's missing")
+    sp.set_defaults(fn=cmd_doctor)
     sp = sub.add_parser("music", help="trending music + what to download; writes data/reports/music-<date>.md")
     sp.set_defaults(fn=cmd_music)
     sp = sub.add_parser("analytics", help="check our YouTube channels' stats; writes data/reports/analytics-<date>.md")

@@ -12,7 +12,7 @@ Checked 2026-11-13. Every campaign in `creators.yaml` runs through **Content Rew
 
 ## Then, for each campaign
 
-Open the link and press **Join Campaign**. Open campaigns let you in straight away. Some ask questions first or need you to send a sample. The full rules and reference files only show **after you join**, so copy them into `creators.yaml` and then set `joined: true`.
+Open the link and press **Join Campaign**. Open campaigns let you in straight away. Some ask questions first or need you to send a sample. The full rules and reference files only show **after you join**, so copy them into `creators.yaml`, then add the creator's key to `rights/joined.yaml`.
 
 | Creator | Channel | Status | Join | Notes |
 |---|---|---|---|---|

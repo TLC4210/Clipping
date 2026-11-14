@@ -2,9 +2,10 @@
 # Researched 2026-11-12. Campaigns change weekly, so re-verify before relying on an entry.
 #
 # How the bot uses this file:
-#   - It only fetches from a creator when `status: active` AND `joined: true` AND today is
+#   - It only fetches from a creator when `status: active` AND you joined it (rights/joined.yaml) AND today is
 #     within `valid_until`. A campaign's permission covers only clippers who have JOINED it,
-#     so every entry starts at joined: false. Flip it after you join on Content Rewards.
+#     so every entry here stays joined: false. After you join on Content Rewards, add the
+#     creator's key to rights/joined.yaml (your own, git-ignored copy; see joined.example.yaml).
 #   - It searches each creator's YouTube uploads (`youtube.channel_id`), limited by `source`.
 #   - `caption_must_include` is added to every post caption and checked in QA.
 #   - `focus` is passed to the AI picker ("X must be the main focus").
@@ -24,7 +25,7 @@ creators:
     twitch: lacy
     basis: campaign
     status: active
-    joined: true                     # joined on Content Rewards 2026-11-13 (both the Shorts/Reels/TikTok and X pools)
+    joined: false                    # set in rights/joined.yaml once you join
     valid_until: 2026-11-22          # 30-day campaign launched ~Oct 20-23; confirm end date on listing
     campaign:
       name: "$30,000 Lacy 30 Day Campaign"
@@ -60,7 +61,7 @@ creators:
     twitch: jasontheween
     basis: campaign
     status: active
-    joined: true                     # joined 2026-11-13
+    joined: false                    # set in rights/joined.yaml once you join
     valid_until: 2026-11-30          # "Campaign ending: 30th of November" (brief)
     campaign:
       name: "$9,000 Jason Pool Campaign"
@@ -87,7 +88,7 @@ creators:
     # Not @SilkyLive: the $5k pool takes CORE-channel footage only and Silky alone doesn't count for the $20k pool.
     basis: campaign
     status: active
-    joined: true                     # joined both pools on Content Rewards 2026-11-13
+    joined: false                    # set in rights/joined.yaml once you join
     valid_until: 2026-11-30
     campaign:
       name: "CORE Pools ($20,000 main + $5,000 YouTube)"
@@ -147,7 +148,7 @@ creators:
     twitch: clix
     basis: campaign
     status: active
-    joined: true                     # joined on Content Rewards 2026-11-13
+    joined: false                    # set in rights/joined.yaml once you join
     valid_until: 2026-11-30          # "[November]" pool
     campaign:
       name: "$5,000 Clix Pool Campaign [November]"
@@ -226,7 +227,7 @@ creators:
     youtube: {channel_id: UC7XPGqv472Nxo7jDuIJplwQ, handle: "@FableSMP"}
     basis: campaign
     status: active
-    joined: true                     # joined 2026-11-13
+    joined: false                    # set in rights/joined.yaml once you join
     valid_until: 2026-12-15
     campaign:
       name: "HardcoreSMP Minecraft Clipping Campaign"

@@ -6,6 +6,7 @@ yt-dlp>=2026.10.26
 PyYAML>=6.0
 requests>=2.32
 numpy>=2.0
+pillow>=11.0               # emoji pop-ups (drawn with Windows' colour emoji font)
 # optional: local speech-to-text when a source has no captions
 openai-whisper            # local captions when YouTube subtitles are blocked (faster-whisper: PyAV DLL blocked by App Control); needs CPU torch: pip install torch --index-url https://download.pytorch.org/whl/cpu
 pytest>=8.0

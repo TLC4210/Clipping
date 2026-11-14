@@ -13,3 +13,4 @@ client_secret*.json
 token*.json
 config/accounts.yaml
 .venv/
+rights/joined.yaml
