@@ -179,7 +179,7 @@ python -m clipper publish --niche streams --live   # posts for real
 ```
 
 1. Watch each clip in `data\clips\<niche>\` before approving it.
-2. After a campaign clip goes live, **submit its link on Content Rewards within 30 minutes**. Campaign clips must be public.
+2. After a campaign clip goes live, **submit its link on Content Rewards within 30 minutes**. Campaign clips must be public. `publish` prints a `SUBMIT_NOW` block with the campaign's submit page. If you run the bot through Claude Code, Claude can do the submission in your Chrome right after posting. Content Rewards has no submission API, and an unattended script logging in would risk its bot score, so a person (or Claude, in your session) does this step. On the submit form, make sure **only** the campaign clip is ticked; it pre-selects every recent post.
 3. Reports to skim:
    - `data\reports\analytics-<date>.md`: views and anything that needs a look, like region blocks or failed uploads.
    - `data\reports\music-<date>.md`: what music to download next.
@@ -201,6 +201,7 @@ Your own gameplay can go in `data\inbox\<niche>\`. It's picked up automatically.
 ## Rules to keep (or lose the account)
 
 - **No AI-generated content** on campaign clips: no AI voices, images or video. One strike bans you from every Reach campaign.
+- **Paid-promotion disclosure** (Content Rewards terms §12.9, FTC): the bot does this for every campaign clip. It shows "#AD · PAID CLIP" for the first 4 seconds, starts the caption with "#ad", and ticks YouTube's "includes paid promotion" box. Don't remove them.
 - **Campaign audience:** most campaigns need at least 50% of your viewers in the US, Canada, UK, Australia or New Zealand. Check it in YouTube Studio → *Analytics* → *Audience*.
 - **One person, one Content Rewards account.** Don't share accounts or logins.
 - **Only clip campaigns you've joined** (Part 7) and CC BY or your own footage. The bot enforces this from `rights\`.
