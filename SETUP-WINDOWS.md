@@ -44,8 +44,6 @@ git --version
 
 ## Part 2: Get the code (10 min)
 
-The repository is private, so the owner has to invite your GitHub account first: repo → *Settings* → *Collaborators* → *Add people*. Accept the email invite, then:
-
 ```powershell
 cd $HOME\Documents
 git clone https://github.com/TLC4210/Clipping.git
