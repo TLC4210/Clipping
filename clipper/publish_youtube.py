@@ -46,7 +46,8 @@ def authorize(acct: dict) -> str:
     return f"{me['snippet']['title']} ({me['id']})"
 
 
-def upload(acct: dict, path: Path, title: str, description: str, tags: list[str]) -> dict:
+def upload(acct: dict, path: Path, title: str, description: str, tags: list[str], paid: bool = False) -> dict:
+    """paid=True ticks YouTube's "includes paid promotion" box (campaign clips)."""
     from googleapiclient.discovery import build
     from googleapiclient.http import MediaFileUpload
 
@@ -63,9 +64,11 @@ def upload(acct: dict, path: Path, title: str, description: str, tags: list[str]
             "selfDeclaredMadeForKids": False,
             "containsSyntheticMedia": False,
         },
+        "paidProductPlacementDetails": {"hasPaidProductPlacement": bool(paid)},
     }
     media = MediaFileUpload(str(path), mimetype="video/mp4", chunksize=8 * 1024 * 1024, resumable=True)
-    req = yt.videos().insert(part="snippet,status", body=body, media_body=media, notifySubscribers=True)
+    req = yt.videos().insert(part="snippet,status,paidProductPlacementDetails", body=body, media_body=media,
+                             notifySubscribers=True)
     resp = None
     while resp is None:
         _, resp = req.next_chunk()

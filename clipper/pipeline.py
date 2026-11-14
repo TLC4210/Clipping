@@ -53,6 +53,8 @@ def member_tags(pick: dict, cfg: dict) -> list[str]:
 
 def describe(src: dict, pick: dict, cfg: dict) -> str:
     parts = [pick.get("description", "").strip()]
+    if render.is_paid(src):  # FTC disclosure, first thing in the caption (Content Rewards terms 12.9)
+        parts[0] = f"#ad {parts[0]}".strip()
     basis = src.get("rights_basis") or ""
     if basis.startswith("creativeCommon"):
         parts.append(f"Footage: {src.get('channel_title')} — licensed CC BY: {src.get('url')}")
@@ -281,7 +283,8 @@ def publish_approved(conn, niche_name: str, live: bool = False, limit: int | Non
                 continue
             try:
                 if platform == "youtube":
-                    r = publish_youtube.upload(acct, Path(clip["path"]), clip["title"], clip["description"], tags)
+                    r = publish_youtube.upload(acct, Path(clip["path"]), clip["title"], clip["description"], tags,
+                                               paid=render.is_paid(src))
                 else:
                     caption = f"{clip['title']}\n\n{clip['description']}"
                     r = publish_instagram.publish(acct, Path(clip["ig_path"] or clip["path"]), caption,

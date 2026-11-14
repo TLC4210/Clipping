@@ -34,7 +34,8 @@ def censor(text: str) -> str:
 
 
 def build_ass(duration: float, hook: str, words: list[dict], clip_start: float, credit: str | None,
-              hook_seconds: float, banner: str | None = None, stacked: bool = False) -> str:
+              hook_seconds: float, banner: str | None = None, stacked: bool = False,
+              disclosure: str | None = None) -> str:
     # Stacked layout (facecam on top): hook at the very top, captions on the seam between cam and screen.
     hook_v, cap_v, banner_v, cap_align = (110, 760 + 40, 250, 8) if stacked else (230, 520, 410, 2)
     lines = [
@@ -48,6 +49,7 @@ def build_ass(duration: float, hook: str, words: list[dict], clip_start: float, 
         f"Style: Cap,{FONT},78,&H00FFFFFF,&H0000E5FF,&H00000000,&H96000000,-1,0,0,0,100,100,0,0,1,6,2,{cap_align},80,80,{cap_v},1",
         f"Style: Credit,{FONT},34,&H00FFFFFF,&H00FFFFFF,&H00000000,&H78000000,0,0,0,0,100,100,0,0,1,2,0,2,40,40,90,1",
         f"Style: Banner,{FONT},46,&H0000E5FF,&H00FFFFFF,&H30000000,&H30000000,-1,0,0,0,100,100,0,0,3,12,0,8,60,60,{banner_v},1",
+        f"Style: Disclose,{FONT},44,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,-1,0,0,0,100,100,0,0,3,10,0,7,40,40,36,1",
         "",
         "[Events]",
         "Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text",
@@ -57,6 +59,8 @@ def build_ass(duration: float, hook: str, words: list[dict], clip_start: float, 
                      f"{{\\fad(0,250)}}{_esc(censor(hook).upper())}")
     if banner:
         lines.append(f"Dialogue: 2,{_ts(0)},{_ts(min(hook_seconds, duration))},Banner,,0,0,0,,{_esc(banner)}")
+    if disclosure:  # paid campaign clip: FTC disclosure at the start (Content Rewards terms 12.9)
+        lines.append(f"Dialogue: 3,{_ts(0)},{_ts(min(DISCLOSURE_S, duration))},Disclose,,0,0,0,,{_esc(disclosure)}")
     if credit:
         lines.append(f"Dialogue: 1,{_ts(0)},{_ts(duration)},Credit,,0,0,0,,{_esc(credit)}")
     # captions: groups of up to 3 words, current word highlighted
@@ -89,6 +93,18 @@ def credit_line(src: dict) -> str | None:
     return f"Footage: {who}"
 
 
+DISCLOSURE_S = 4.0
+
+
+def is_paid(src: dict) -> bool:
+    """A clip made for a paid campaign (Content Rewards): it needs a paid-promotion disclosure."""
+    return (src.get("rights_basis") or "").startswith("campaign:")
+
+
+def disclosure_for(cfg: dict, src: dict) -> str | None:
+    return cfg.get("disclosure_text", "#AD · PAID CLIP") if is_paid(src) else None
+
+
 def banner_for(cfg: dict, src: dict) -> str | None:
     until = cfg.get("spoiler_card_until")
     title = (src.get("title") or "").lower()
@@ -110,7 +126,8 @@ def render(src: dict, pick: dict, cfg: dict, out_path: Path | None = None, platf
     cam = src.get("facecam") if cfg.get("layout") == "facecam_stack" else None
     ass_path.write_text(build_ass(dur, pick.get("hook", ""), tl.words(pick.get("words", [])), 0.0,
                                   credit_line(src) if cfg.get("burn_credit") else None,
-                                  cfg.get("hook_seconds", 2.5), banner_for(cfg, src), stacked=bool(cam)),
+                                  cfg.get("hook_seconds", 2.5), banner_for(cfg, src), stacked=bool(cam),
+                                  disclosure=disclosure_for(cfg, src)),
                         encoding="utf-8")
     master = out_path.with_name(out_path.stem + ".master.mp4")
     info = edit.master(src, tl.ranges, master)

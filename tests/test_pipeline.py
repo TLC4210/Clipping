@@ -576,3 +576,43 @@ def test_joined_override_and_doctor(env, monkeypatch, tmp_path):
 
     text, _ = doctor.report()
     assert "python" in text and "ffmpeg" in text and "campaigns joined" in text
+
+
+def test_paid_campaign_disclosure(env):
+    """Campaign clips: '#ad' first in the caption, on screen at the start, and YouTube's paid-promotion flag."""
+    from clipper import pipeline, publish_youtube, render
+
+    camp = {"rights_basis": "campaign:lacy", "channel_title": "Lacy", "url": "https://x/1"}
+    cc = {"rights_basis": "creativeCommon (CC BY)", "channel_title": "A", "url": "https://x/2"}
+    cfg = {"hashtags": ["#shorts"], "caption_must_include": []}
+    assert pipeline.describe(camp, {"description": "Lacy buys a car."}, cfg).startswith("#ad Lacy buys a car.")
+    assert not pipeline.describe(cc, {"description": "A jump."}, cfg).startswith("#ad")
+    assert ",Disclose," in render.build_ass(20, "hook", [], 0, None, 2.5, disclosure=render.disclosure_for({}, camp))
+    assert render.disclosure_for({}, cc) is None
+
+    sent = {}
+
+    class Req:
+        def next_chunk(self): return None, {"id": "vid1"}
+
+    class Videos:
+        def insert(self, part, body, media_body, notifySubscribers):
+            sent.update(part=part, body=body)
+            return Req()
+
+    class YT:
+        def videos(self): return Videos()
+
+    import googleapiclient.discovery
+    import googleapiclient.http
+    orig_build, orig_media, orig_creds = googleapiclient.discovery.build, googleapiclient.http.MediaFileUpload, publish_youtube._creds
+    googleapiclient.discovery.build = lambda *a, **k: YT()
+    googleapiclient.http.MediaFileUpload = lambda *a, **k: None
+    publish_youtube._creds = lambda acct: None
+    try:
+        publish_youtube.upload({}, Path("x.mp4"), "t", "#ad d", [], paid=True)
+    finally:
+        googleapiclient.discovery.build, googleapiclient.http.MediaFileUpload = orig_build, orig_media
+        publish_youtube._creds = orig_creds
+    assert "paidProductPlacementDetails" in sent["part"]
+    assert sent["body"]["paidProductPlacementDetails"] == {"hasPaidProductPlacement": True}
